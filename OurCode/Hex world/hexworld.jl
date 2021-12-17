@@ -152,7 +152,7 @@ end
 
 const HexWorldRBumpBorder = -1.0 # Reward for falling off hex map
 const HexWorldPIntended = 0.7 # Probability of going intended direction
-const HexWorldDiscountFactor = 0.9
+const HexWorldDiscountFactor = 0.9 #y
 
 function HexWorld()
     HexWorld = HexWorldMDP(
