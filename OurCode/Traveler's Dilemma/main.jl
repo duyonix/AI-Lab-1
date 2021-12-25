@@ -1,17 +1,16 @@
-import Pkg
-import JuMP
-import LinearAlgebra
-import Ipopt
-Pkg.add("Ipopt")
+# import Pkg
+# Pkg.add("Plots")
+# import JuMP
+# import LinearAlgebra
 
 using JuMP
 using LinearAlgebra
-using Ipopt
+using Plots
 
 struct SimpleGame
     γ # discount factor
     ℐ # agents
-    𝒜 # joint action space
+    𝒜 # joint action spaces
     R # joint reward function
 end
 
@@ -145,15 +144,17 @@ end
 simpleGame = Travelers()  # simpleGame::Travelers
 P = SimpleGame(simpleGame) # P is a SimpleGame instance according to simpleGame
 
-IBR = IteratedBestResponse(P, 100) # IBR is used for finding Nash Equilibrium
-π = solve(IBR, P)  # π is the Nash Equilibrium
-print(π)
+# IBR = IteratedBestResponse(P, 100) # IBR is used for finding Nash Equilibrium
+# π = solve(IBR, P)  # π is the Nash Equilibrium
+# print(π)
 
 HS = HierarchicalSoftmax(P, 0.5, 10) # HS is used for finding policy for human agents
 D = solve(HS, P)
 
-for i = 2:100
-    print(i)
-    print(": ")
-    println(D[1].p[i])
-end
+# for i = 2:100
+#     print(i)
+#     print(": ")
+#     println(D[1].p[i])
+# end
+
+bar(collect(keys(D[1].p)), collect(values(D[1].p)), orientation = :vertical, legend = false)
