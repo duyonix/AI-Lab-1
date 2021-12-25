@@ -5,6 +5,15 @@ using Parameters: @with_kw
 using JuMP
 using Ipopt
 
+# Pkg.add("Gadfly")
+# Pkg.add("DataFrames")
+# using DataFrames
+# using Gadfly
+# import Base.rand
+
+# plot(data::DataFrames, mapping::Dict(), Element::element, Geometrics())
+# plot(x=Base.rand(20), y=Base.rand(20), Geom.point)
+
 struct SimpleGame
     γ # discount factor
     ℐ # agents
@@ -387,6 +396,7 @@ end
 struct NashEquilibrium end
     
 function solve(M::NashEquilibrium, 𝒫::SimpleGame)
+    # find nash equilibrum for SimpleGame
     ℐ, 𝒜, R = tensorform(𝒫)
     model = Model(Ipopt.Optimizer)
     @variable(model, U[ℐ])
@@ -477,14 +487,73 @@ end
 multicaregiver_cryingbaby=MultiCaregiverCryingBaby() # return instance babyPOMG
 pomg=POMG(multicaregiver_cryingbaby) # return POMG instance from babyPOMG instance
 
-b=[0.5, 0.5] # initial state distribution, b[sated]=b[hungry]=0.5, we can set this to [0.8, 0.2]
-d=2 # depth of conditional plans
+b=[0.8, 0.2] # initial state distribution, b[sated]=b[hungry]=0.5, we can set this to [0.8, 0.2]
+d=3 # depth of conditional plans
 
-# pomgDP=POMGDynamicProgramming(b, 5)
-pomgNash=POMGNashEquilibrium(b, d)
-print(solve(pomgNash, pomg))
-    
-function printConditionalPlan(c::ConditionalPlan)
+pomgDP=POMGDynamicProgramming(b, 5)
+# pomgNash=POMGNashEquilibrium(b, d)
+ans=solve(pomgDP, pomg)
+print(ans)
 
+vectorAns=[]
+
+function createVector!(c::ConditionalPlan, vectorAns, i)
+    # if(length(vectorAns)<2*i-1)
+    #     push!(vectorAns, [])
+    # end
+    # push!(vectorAns[2*i-1], c.a)
+    # for (key, value) in c.subplans
+    #     if(length(vectorAns)<2*i)
+    #         push!(vectorAns, [])
+    #     end
+    #     push!(vectorAns[2*i], key)
+    #     createVector!(value, vectorAns, i+1)
+    # end
+    if(length(vectorAns)<i)
+        push!(vectorAns, [])
+    end
+    push!(vectorAns[i], c.a)
+    for (key, value) in c.subplans
+        createVector!(value, vectorAns, i+1)
+    end
 end
+
+function printSpace(n)
+    for i=1:n
+        print(" ")
+    end
+end
+
+function printVectorAns(vectorAns)
+    powerOf2=[64, 32, 16, 8, 4, 2]
+    println("")
+    for i=1:length(vectorAns)
+        printSpace(powerOf2[i]/2-1)
+        for j=1:length(vectorAns[i])
+            
+            # printSpace(powerOf2[i]-1)
+            item=vectorAns[i][j]
+            if item==FEED
+                print("F")
+            elseif item==SING
+                print("S")
+            else
+                print("I")
+            end
+            if j!=length(vectorAns[i]) 
+                printSpace(powerOf2[i]-1)
+            end
+        end
+        println("")
+    end
+end
+
+for res in ans
+    createVector!(res, vectorAns, 1)
+    printVectorAns(vectorAns)
+    empty!(vectorAns)
+end
+
+
+
             
