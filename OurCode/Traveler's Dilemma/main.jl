@@ -1,10 +1,10 @@
 # Our code is based on the book "Algorithm for Decision Making" by Mykel J. Kochenderfer, Tim A. Wheeler, Kyle Wray
 # from The MIT Press; Cambridge, Massachusetts; London, England
 
-import Pkg
-Pkg.add("Plots")
-import JuMP
-import LinearAlgebra
+# import Pkg
+# Pkg.add("Plots")
+# import JuMP
+# import LinearAlgebra
 
 using JuMP
 using LinearAlgebra
@@ -183,7 +183,7 @@ P = SimpleGame(simpleGame) # P is a SimpleGame instance according to simpleGame
 
 # example of experiment 2: Hierarchical Softmax
 # run the code below in REPL to see the visualization
-HS = HierarchicalSoftmax(P, 0.5, 10) # HS is used for finding policy for human agents
+HS = HierarchicalSoftmax(P, 0.5, 1000) # HS is used for finding policy for human agents
 π2 = solve(HS, P)
 
 # visualize result with Plots

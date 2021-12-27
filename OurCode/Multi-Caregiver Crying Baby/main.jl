@@ -1,4 +1,5 @@
-import Pkg; Pkg.add("Parameters")
+# import Pkg
+# Pkg.add("Parameters")
 
 using Random
 using Parameters: @with_kw
@@ -30,7 +31,7 @@ struct SimpleGamePolicy
     function SimpleGamePolicy(p::Dict)
         vs = collect(values(p))
         vs ./= sum(vs)
-        return new(Dict(k => v for (k,v) in zip(keys(p), vs)))
+        return new(Dict(k => v for (k, v) in zip(keys(p), vs)))
     end
 
     SimpleGamePolicy(ai) = new(Dict(ai => 1.0))
@@ -51,11 +52,11 @@ struct BoolDistribution
     p::Float64 # probability of true
 end
 
-pdf(d::BoolDistribution, s::Bool) = s ? d.p : 1.0-d.p
+pdf(d::BoolDistribution, s::Bool) = s ? d.p : 1.0 - d.p
 rand(rng::AbstractRNG, d::BoolDistribution) = rand(rng) <= d.p
 iterator(d::BoolDistribution) = [true, false]
 Base.:(==)(d1::BoolDistribution, d2::BoolDistribution) = d1.p == d2.p
-Base.hash(d::BoolDistribution, u::UInt64=UInt64(0)) = hash(d.p, u)
+Base.hash(d::BoolDistribution, u::UInt64 = UInt64(0)) = hash(d.p, u)
 Base.length(d::BoolDistribution) = 2
 
 @with_kw struct CryingBaby
@@ -74,7 +75,7 @@ end
 SATED = 1
 HUNGRY = 2
 FEED = 1
-IGNORE = 2 
+IGNORE = 2
 SING = 3
 CRYING = true
 QUIET = false
@@ -97,9 +98,9 @@ discount(pomdp::CryingBaby) = pomdp.γ
 
 ordered_states(::CryingBaby) = [SATED, HUNGRY]
 ordered_actions(::CryingBaby) = [FEED, IGNORE, SING]
-ordered_observations(::CryingBaby) = [CRYING,QUIET]
+ordered_observations(::CryingBaby) = [CRYING, QUIET]
 
-two_state_categorical(p1::Float64) = Categorical([p1,1.0 - p1])
+two_state_categorical(p1::Float64) = Categorical([p1, 1.0 - p1])
 
 function transition(pomdp::CryingBaby, s::Int, a::Int)
     if a == FEED
@@ -109,7 +110,7 @@ function transition(pomdp::CryingBaby, s::Int, a::Int)
             return two_state_categorical(0.0) # [0, 1]
         else
             # Did not feed when not hungry
-            return two_state_categorical(1.0-pomdp.p_become_hungry) # [1-p_become_hungry, p_become_hungry]
+            return two_state_categorical(1.0 - pomdp.p_become_hungry) # [1-p_become_hungry, p_become_hungry]
         end
     end
 end
@@ -143,11 +144,11 @@ function reward(pomdp::CryingBaby, s::Int, a::Int)
     return r
 end
 
-reward(pomdp::CryingBaby, b::Vector{Float64}, a::Int) = sum(reward(pomdp,s,a)*b[s] for s in ordered_states(pomdp))
+reward(pomdp::CryingBaby, b::Vector{Float64}, a::Int) = sum(reward(pomdp, s, a) * b[s] for s in ordered_states(pomdp))
 # reward=(p_hungry*reward_hungry+p_sated*reward_sated)
 
-function DiscretePOMDP(pomdp::CryingBaby; γ::Float64=pomdp.γ)
-    nS = n_states(pomdp) 
+function DiscretePOMDP(pomdp::CryingBaby; γ::Float64 = pomdp.γ)
+    nS = n_states(pomdp)
     nA = n_actions(pomdp)
     nO = n_observations(pomdp)
 
@@ -166,8 +167,8 @@ function DiscretePOMDP(pomdp::CryingBaby; γ::Float64=pomdp.γ)
     o_q = 2 #quiet
 
     T[s_s, a_f, :] = [1.0, 0.0] # T(sated | feed, (hungry or sated))
-    T[s_s, a_i, :] = [1.0-pomdp.p_become_hungry, pomdp.p_become_hungry]
-    T[s_s, a_s, :] = [1.0-pomdp.p_become_hungry, pomdp.p_become_hungry]
+    T[s_s, a_i, :] = [1.0 - pomdp.p_become_hungry, pomdp.p_become_hungry]
+    T[s_s, a_s, :] = [1.0 - pomdp.p_become_hungry, pomdp.p_become_hungry]
     T[s_h, a_f, :] = [1.0, 0.0]
     T[s_h, a_i, :] = [0.0, 1.0]
     T[s_h, a_s, :] = [0.0, 1.0]
@@ -189,7 +190,7 @@ function DiscretePOMDP(pomdp::CryingBaby; γ::Float64=pomdp.γ)
     return DiscretePOMDP(T, R, O, γ)
 end
 
-function POMDP(pomdp::CryingBaby; γ::Float64=pomdp.γ)
+function POMDP(pomdp::CryingBaby; γ::Float64 = pomdp.γ)
     disc_pomdp = DiscretePOMDP(pomdp)
     return POMDP(disc_pomdp)
 end
@@ -209,7 +210,7 @@ ordered_states(pomg::BabyPOMG) = [SATED, HUNGRY]
 ordered_actions(pomg::BabyPOMG, i::Int) = [FEED, IGNORE, SING]
 ordered_joint_actions(pomg::BabyPOMG) = vec(collect(Iterators.product([ordered_actions(pomg, i) for i in 1:n_agents(pomg)]...)))
 
-n_actions(pomg::BabyPOMG, i::Int) = length(ordered_actions(pomg, i)) 
+n_actions(pomg::BabyPOMG, i::Int) = length(ordered_actions(pomg, i))
 n_joint_actions(pomg::BabyPOMG) = length(ordered_joint_actions(pomg))
 
 ordered_observations(pomg::BabyPOMG, i::Int) = [CRYING, QUIET]
@@ -235,7 +236,7 @@ function transition(pomg::BabyPOMG, s, a, s′) # a: joint actions [a1, a2]
             else
                 return 0.0
             end
-        # Otherwise, it becomes hungry with a fixed probability.
+            # Otherwise, it becomes hungry with a fixed probability.
         else
             probBecomeHungry = pomg.babyPOMDP.p_become_hungry
             if s′ == SATED
@@ -259,7 +260,7 @@ function joint_observation(pomg::BabyPOMG, a, s′, o)
             else
                 return 0.0
             end
-        # Otherwise the baby is sated, and the baby is silent.
+            # Otherwise the baby is sated, and the baby is silent.
         else
             if o[1] == QUIET && o[2] == QUIET
                 return 1.0
@@ -267,7 +268,7 @@ function joint_observation(pomg::BabyPOMG, a, s′, o)
                 return 0.0
             end
         end
-    # Otherwise, the caregivers fed and/or ignored the baby.
+        # Otherwise, the caregivers fed and/or ignored the baby.
     else
         # If the baby is hungry, then there's a probability it cries.
         if s′ == HUNGRY
@@ -278,7 +279,7 @@ function joint_observation(pomg::BabyPOMG, a, s′, o)
             else
                 return 0.0
             end
-        # Similarly when it is sated.
+            # Similarly when it is sated.
         else
             if o[1] == CRYING && o[2] == CRYING
                 return pomg.babyPOMDP.p_cry_when_not_hungry
@@ -345,31 +346,31 @@ struct ConditionalPlan
     subplans # dictionary mapping observations to subplans (sub-conditional plan)
 end
 
-    
+
 ConditionalPlan(a) = ConditionalPlan(a, Dict())
 (π::ConditionalPlan)() = π.a
 (π::ConditionalPlan)(o) = π.subplans[o]
 
 function lookahead(𝒫::POMG, U, s, a)
     𝒮, 𝒪, T, O, R, γ = 𝒫.𝒮, joint(𝒫.𝒪), 𝒫.T, 𝒫.O, 𝒫.R, 𝒫.γ
-    u′ = sum(T(s,a,s′)*sum(O(a,s′,o)*U(o,s′) for o in 𝒪) for s′ in 𝒮)
-    return R(s,a) + γ*u′ 
+    u′ = sum(T(s, a, s′) * sum(O(a, s′, o) * U(o, s′) for o in 𝒪) for s′ in 𝒮)
+    return R(s, a) + γ * u′
 end
-    
+
 function evaluate_plan(𝒫::POMG, π, s)
     # compute utility of conditional plan 
     a = Tuple(πi() for πi in π)
-    U(o,s′) = evaluate_plan(𝒫, [πi(oi) for (πi, oi) in zip(π,o)], s′)
-    return isempty(first(π).subplans) ? 𝒫.R(s,a) : lookahead(𝒫, U, s, a) # equation (26.1) page 528
+    U(o, s′) = evaluate_plan(𝒫, [πi(oi) for (πi, oi) in zip(π, o)], s′)
+    return isempty(first(π).subplans) ? 𝒫.R(s, a) : lookahead(𝒫, U, s, a) # equation (26.1) page 528
 end
-    
+
 function utility(𝒫::POMG, b, π)
     # compute utility of policy π from initial state distibution b
     u = [evaluate_plan(𝒫, π, s) for s in 𝒫.𝒮]
     return sum(bs * us for (bs, us) in zip(b, u)) # equation (26.2) page 528
 end
 
-    
+
 function create_conditional_plans(𝒫, d)
     # create conditional plan with depth d from P::POMG
     ℐ, 𝒜, 𝒪 = 𝒫.ℐ, 𝒫.𝒜, 𝒫.𝒪
@@ -394,31 +395,32 @@ function tensorform(𝒫::SimpleGame)
 end
 
 struct NashEquilibrium end
-    
+
 function solve(M::NashEquilibrium, 𝒫::SimpleGame)
     # find nash equilibrum for SimpleGame
     ℐ, 𝒜, R = tensorform(𝒫)
     model = Model(Ipopt.Optimizer)
     @variable(model, U[ℐ])
-    @variable(model, π[i=ℐ, 𝒜[i]] ≥ 0)
+    @variable(model, π[i = ℐ, 𝒜[i]] ≥ 0)
     @NLobjective(model, Min,
-    sum(U[i] - sum(prod(π[j,a[j]] for j in ℐ) * R[y][i]
-    for (y,a) in enumerate(joint(𝒜))) for i in ℐ))
-    @NLconstraint(model, [i=ℐ, ai=𝒜[i]],
-    U[i] ≥ sum(
-    prod(j==i ? (a[j]==ai ? 1.0 : 0.0) : π[j,a[j]] for j in ℐ)
-    * R[y][i] for (y,a) in enumerate(joint(𝒜))))
-    @constraint(model, [i=ℐ], sum(π[i,ai] for ai in 𝒜[i]) == 1)
+        sum(U[i] - sum(prod(π[j, a[j]] for j in ℐ) * R[y][i]
+                       for (y, a) in enumerate(joint(𝒜))) for i in ℐ))
+    @NLconstraint(model, [i = ℐ, ai = 𝒜[i]],
+        U[i] ≥ sum(
+            prod(j == i ? (a[j] == ai ? 1.0 : 0.0) : π[j, a[j]] for j in ℐ)
+            *
+            R[y][i] for (y, a) in enumerate(joint(𝒜))))
+    @constraint(model, [i = ℐ], sum(π[i, ai] for ai in 𝒜[i]) == 1)
     optimize!(model)
-    πi′(i) = SimpleGamePolicy(𝒫.𝒜[i][ai] => value(π[i,ai]) for ai in 𝒜[i])
+    πi′(i) = SimpleGamePolicy(𝒫.𝒜[i][ai] => value(π[i, ai]) for ai in 𝒜[i])
     return [πi′(i) for i in ℐ]
 end
-    
+
 
 
 joint(X) = vec(collect(Iterators.product(X...)))
 
-    
+
 function solve(M::POMGNashEquilibrium, 𝒫::POMG)
     # step 1: convert POMG to SimpleGame
     # step 2: find Nash Equilibrium of that SimpleGame
@@ -434,7 +436,7 @@ struct POMGDynamicProgramming
     b # initial belief
     d # depth of conditional plans
 end
-    
+
 function solve(M::POMGDynamicProgramming, 𝒫::POMG)
     ℐ, 𝒮, 𝒜, R, γ, b, d = 𝒫.ℐ, 𝒫.𝒮, 𝒫.𝒜, 𝒫.R, 𝒫.γ, M.b, M.d
     Π = [[ConditionalPlan(ai) for ai in 𝒜[i]] for i in ℐ]
@@ -446,7 +448,7 @@ function solve(M::POMGDynamicProgramming, 𝒫::POMG)
     π = solve(NashEquilibrium(), 𝒢)
     return Tuple(argmax(πi.p) for πi in π)
 end
-    
+
 function prune_dominated!(Π, 𝒫::POMG)
     # prune any policy that is dominated by another policies
     done = false
@@ -463,39 +465,39 @@ function prune_dominated!(Π, 𝒫::POMG)
         end
     end
 end
-    
+
 function is_dominated(𝒫::POMG, Π, i, πi)
     # check if policy is dominated
     ℐ, 𝒮 = 𝒫.ℐ, 𝒫.𝒮
     jointΠnoti = joint([Π[j] for j in ℐ if j ≠ i])
-    π(πi′, πnoti) = [j==i ? πi′ : πnoti[j>i ? j-1 : j] for j in ℐ]
+    π(πi′, πnoti) = [j == i ? πi′ : πnoti[j > i ? j - 1 : j] for j in ℐ]
     Ui = Dict((πi′, πnoti, s) => evaluate_plan(𝒫, π(πi′, πnoti), s)[i]
-    for πi′ in Π[i], πnoti in jointΠnoti, s in 𝒮)
+              for πi′ in Π[i], πnoti in jointΠnoti, s in 𝒮)
     model = Model(Ipopt.Optimizer)
     @variable(model, δ)
     @variable(model, b[jointΠnoti, 𝒮] ≥ 0)
     @objective(model, Max, δ)
-    @constraint(model, [πi′=Π[i]],
-    sum(b[πnoti, s] * (Ui[πi′, πnoti, s] - Ui[πi, πnoti, s])
-    for πnoti in jointΠnoti for s in 𝒮) ≥ δ)
-        @constraint(model, sum(b) == 1)
-        optimize!(model)
+    @constraint(model, [πi′ = Π[i]],
+        sum(b[πnoti, s] * (Ui[πi′, πnoti, s] - Ui[πi, πnoti, s])
+            for πnoti in jointΠnoti for s in 𝒮) ≥ δ)
+    @constraint(model, sum(b) == 1)
+    optimize!(model)
     return value(δ) ≥ 0
 end
-    
 
-multicaregiver_cryingbaby=MultiCaregiverCryingBaby() # return instance babyPOMG
-pomg=POMG(multicaregiver_cryingbaby) # return POMG instance from babyPOMG instance
 
-b=[0.8, 0.2] # initial state distribution, b[sated]=b[hungry]=0.5, we can set this to [0.8, 0.2]
-d=3 # depth of conditional plans
+multicaregiver_cryingbaby = MultiCaregiverCryingBaby() # return instance babyPOMG
+pomg = POMG(multicaregiver_cryingbaby) # return POMG instance from babyPOMG instance
 
-pomgDP=POMGDynamicProgramming(b, 5)
+b = [0.8, 0.2] # initial state distribution, b[sated]=b[hungry]=0.5, we can set this to [0.8, 0.2]
+d = 3 # depth of conditional plans
+
+pomgDP = POMGDynamicProgramming(b, 5)
 # pomgNash=POMGNashEquilibrium(b, d)
-ans=solve(pomgDP, pomg)
+ans = solve(pomgDP, pomg)
 print(ans)
 
-vectorAns=[]
+vectorAns = []
 
 function createVector!(c::ConditionalPlan, vectorAns, i)
     # if(length(vectorAns)<2*i-1)
@@ -509,39 +511,39 @@ function createVector!(c::ConditionalPlan, vectorAns, i)
     #     push!(vectorAns[2*i], key)
     #     createVector!(value, vectorAns, i+1)
     # end
-    if(length(vectorAns)<i)
+    if (length(vectorAns) < i)
         push!(vectorAns, [])
     end
     push!(vectorAns[i], c.a)
     for (key, value) in c.subplans
-        createVector!(value, vectorAns, i+1)
+        createVector!(value, vectorAns, i + 1)
     end
 end
 
 function printSpace(n)
-    for i=1:n
+    for i = 1:n
         print(" ")
     end
 end
 
 function printVectorAns(vectorAns)
-    powerOf2=[64, 32, 16, 8, 4, 2]
+    powerOf2 = [64, 32, 16, 8, 4, 2]
     println("")
-    for i=1:length(vectorAns)
-        printSpace(powerOf2[i]/2-1)
-        for j=1:length(vectorAns[i])
-            
+    for i = 1:length(vectorAns)
+        printSpace(powerOf2[i] / 2 - 1)
+        for j = 1:length(vectorAns[i])
+
             # printSpace(powerOf2[i]-1)
-            item=vectorAns[i][j]
-            if item==FEED
+            item = vectorAns[i][j]
+            if item == FEED
                 print("F")
-            elseif item==SING
+            elseif item == SING
                 print("S")
             else
                 print("I")
             end
-            if j!=length(vectorAns[i]) 
-                printSpace(powerOf2[i]-1)
+            if j != length(vectorAns[i])
+                printSpace(powerOf2[i] - 1)
             end
         end
         println("")
@@ -556,4 +558,3 @@ end
 
 
 
-            
