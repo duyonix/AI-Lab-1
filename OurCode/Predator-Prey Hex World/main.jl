@@ -86,8 +86,8 @@ function reward(mg::PredatorPreyHexWorldMG, i::Int, s,a)
     return r
 end
 
-function joint_reward(mg::PredatorPreyHexWorldMG, s,a)
-    return [reward(mg, i, s,a) for i in 1:n_agents(mg)]
+function joint_reward(mg::PredatorPreyHexWorldMG, s, a)
+    return [reward(mg, i, s, a) for i in 1:n_agents(mg)]
 end
 
 function MG(mg::PredatorPreyHexWorldMG)
@@ -325,6 +325,7 @@ function simulate(𝒫::MG, π, k_max, b)
         #display(a)
         #random state mới
         s′, r = randstep(𝒫, s, a)
+        # println(s," => ",s′)
         for πi in π
             # update lại policy
             update!(πi, s, a, s′)
@@ -332,7 +333,7 @@ function simulate(𝒫::MG, π, k_max, b)
         
         # update reward visualize
         
-        if(s′[1] != s′[2])
+        if(s[1] != s[2])
             if(s[1]==s′[1])
                 r[1] = 0
             end
@@ -361,9 +362,10 @@ mg = MG(p)
 π = [MGFictitiousPlay(mg, i) for i in 1:2]
 #display(π)
 print("version ----------------------------------------\n\n\n\n\n")
-k_max=8
+k_max=10
 v,policy=simulate(mg, π, k_max, mg.𝒮)
 
 
 drawPredatorPreyHW(v.states,v.rewards,k_max)
+
 

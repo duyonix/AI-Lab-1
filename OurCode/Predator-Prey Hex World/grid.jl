@@ -1,6 +1,6 @@
 using Luxor, Colors
 
-function drawArrow(centerHexagon, startState, endState)
+function drawArrow(centerHexagon, startState, endState, isCaptured)
     # predator
     sethue("red")
     circle(centerHexagon[startState[1]], 10, :fill)
@@ -12,12 +12,16 @@ function drawArrow(centerHexagon, startState, endState)
     # prey
     sethue("cyan")
     circle(centerHexagon[startState[2]], 6, :fill)
+    
+    if(isCaptured)
+        sethue("grey")
+    end
     if (startState[2] != endState[2])
         arrow(centerHexagon[startState[2]], centerHexagon[endState[2]], linewidth = 4, arrowheadlength = 15, arrowheadangle = pi / 6)
     end
 end
 
-function drawPredatorPreyHW(cacheState, iterations)
+function drawPredatorPreyHW(cacheStates,rewards, iterations)
     discrete = [2, 3, 4, 8, 10, 12, 13, 15, 16, 17, 18, 19]
     state = 1:12
 
@@ -45,9 +49,9 @@ function drawPredatorPreyHW(cacheState, iterations)
         fontsize(20)
 
         sethue("red")
-        text(string(rewards[iter][1]),startPoint+Point(300,-10),halign=:right, valign = :bottom)
+        text(string(rewards[iter][1]),startPoint+Point(350,-10),halign=:right, valign = :bottom)
         
-        sethue("cyan")
+        sethue("blue")
         text(string(rewards[iter][2]),startPoint+Point(400,-10),halign=:right, valign = :bottom)
 
         j=1
@@ -70,7 +74,11 @@ function drawPredatorPreyHW(cacheState, iterations)
             end
 
         end
-        drawArrow(centerHexagon,cacheStates[iter],cacheStates[iter+1])
+        isCaptured = false
+        if(iter > 0 && rewards[iter+1][1]==10)
+            isCaptured = true
+        end
+        drawArrow(centerHexagon,cacheStates[iter],cacheStates[iter+1],isCaptured)
     end
 
     finish()
