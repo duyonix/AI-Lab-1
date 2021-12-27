@@ -1,10 +1,8 @@
-include("./discrete_mdp.jl")
-
 function hex_neighbors(hex::Tuple{Int,Int})
     i,j = hex
     [(i+1,j),(i,j+1),(i-1,j+1),(i-1,j),(i,j-1),(i+1,j-1)]
 end
-#1,1 => 2,1 1,2 0,2 0,1 1,0 2,0
+
 struct HexWorldMDP
     # Problem has |hexes| + 1 states, where last state is consuming.
     hexes::Vector{Tuple{Int,Int}}
@@ -96,23 +94,14 @@ const HexWorldRBumpBorder = -1.0 # Reward for falling off hex map
 const HexWorldPIntended = 0.7 # Probability of going intended direction
 const HexWorldDiscountFactor = 0.9
 
-function HexWorld()
-    HexWorld = HexWorldMDP(
-        [(0,0),(1,0),(2,0),(3,0),(0,1),(1,1),(2,1),(-1,2),
-         (0,2),(1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),
-         (8,2),(4,1),(5,0),(6,0),(7,0),(7,1),(8,1),(9,0)],
-        HexWorldRBumpBorder,
-        HexWorldPIntended,
-        Dict{Tuple{Int,Int}, Float64}(
-            (0,1)=>  5.0, # left side reward
-            (2,0)=>-10.0, # left side hazard
-            (9,0)=> 10.0, # right side reward
-        ),
-        HexWorldDiscountFactor
-    )
-    return HexWorld
-end
+n_states(mdp::HexWorldMDP) = n_states(mdp.mdp)
+n_actions(mdp::HexWorldMDP) = n_actions(mdp.mdp)
+discount(mdp::HexWorldMDP) = discount(mdp.mdp)
+ordered_states(mdp::HexWorldMDP) = ordered_states(mdp.mdp)
+ordered_actions(mdp::HexWorldMDP) = ordered_actions(mdp.mdp)
+state_index(mdp::HexWorldMDP, s::Int) = s
 
-function MDP(mdp::HexWorldMDP)
-    return MDP(mdp.mdp.T,mdp.mdp.R,mdp.mdp.γ)
+
+function DiscreteMDP(mdp::HexWorldMDP)
+    return mdp.mdp
 end
