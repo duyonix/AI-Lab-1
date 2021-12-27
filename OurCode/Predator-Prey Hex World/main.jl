@@ -1,3 +1,16 @@
+using Pkg
+
+using Distributions
+struct MG
+    γ  # discount factor
+    ℐ  # agents
+    𝒮  # state space
+    𝒜  # joint action space
+    T  # transition function
+    R  # joint reward function
+end
+
+
 include("discrete_mdp.jl")
 include("hexworld.jl")
 include("simplegame.jl")
@@ -33,15 +46,18 @@ n_actions(mg::PredatorPreyHexWorldMG, i::Int) = length(ordered_actions(mg, i))
 n_joint_actions(mg::PredatorPreyHexWorldMG) = length(ordered_joint_actions(mg))
 
 function transition(mg::PredatorPreyHexWorldMG, s, a, s′)
-    # When a prey is caught (new prey born), it teleports to a random location and the predator remains (eating).
-    # Otherwise, both transition following HexWorldMDP.
+
+    # Khi prey bị bắt, prey mới sẽ được sinh ra, rồi dịch chuyển ngẫu nhiên tới một vị trí nào đó trên hex map nên tỉ lệ sẽ là 1/12. Còn predator sẽ đứng yên
     if s[1] == s[2]
         prob = Float64(s′[1] == s[1]) / length(mg.hexes)
         #display(prob)
     else
-        # vì cố 2 agents nên nhân lại
+
+
         # display(mg.hexWorldDiscreteMDP.T[:, :, 1])
-        # display("\n")
+
+        # Ngược lại, transition cả 2 sẽ theo HexWorld
+        # Vì cố 2 agents nên nhân lại
         prob = mg.hexWorldDiscreteMDP.T[s[1], a[1], s′[1]] * mg.hexWorldDiscreteMDP.T[s[2], a[2], s′[2]]
     end
     # xác suất transition của cả 2 agents
@@ -135,6 +151,24 @@ end
 
 
 
+
+struct MGPolicy
+    p # dictionary mapping states to simple game policies
+    MGPolicy(p::Base.Generator) = new(Dict(p))
+end
+
+# ở ulatr (πi::SimpleGamePolicy)(ai)
+(πi::MGPolicy)(s, ai) = πi.p[s](ai)
+(πi::SimpleGamePolicy)(s, ai) = πi(ai)
+
+probability(𝒫::MG, s, π, a) = prod(πj(s, aj) for (πj, aj) in zip(π, a))
+reward(𝒫::MG, s, π, i) =
+    sum(𝒫.R(s, a)[i] * probability(𝒫, s, π, a) for a in joint(𝒫.𝒜))
+transition(𝒫::MG, s, π, s′) =
+    sum(𝒫.T(s, a, s′) * probability(𝒫, s, π, a) for a in joint(𝒫.𝒜))
+
+
+
 mutable struct MGFictitiousPlay
     𝒫 # Markov game
     i # agent index
@@ -201,7 +235,7 @@ function (πi::MGFictitiousPlay)(s,v,iteration)
     # joint => [SimpleGamePolicy,MGPolicy ]; [MGPolicy,SimpleGamePolicy]
     # SimpleGamePolicy (ai => 1.0), aj  => 0
 
-    # tìm action cho agent i => SimpleGamePolicy => tính Q(ai) => qđ chọn ai 
+    # tìm action cho agent i => SimpleGamePolicy => tính Q(ai) => quyến định chọn ai 
     # đối thủ => MGPolicy => tính hết A
     Q(ai) = Q(s, joint(π, SimpleGamePolicy(ai), i))
     # index của max element
@@ -297,11 +331,14 @@ function simulate(𝒫::MG, π, k_max, b)
         end
         
         # update reward visualize
-        if(s[1]==s′[1])
-            r[1] = 0
-        end
-        if(s[2]==s′[2])
-            r[2] = 0
+        
+        if(s′[1] != s′[2])
+            if(s[1]==s′[1])
+                r[1] = 0
+            end
+            if(s[2]==s′[2])
+                r[2] = 0
+            end
         end
         push!(v.rewards,Tuple(r))
         push!(v.states,s′)
