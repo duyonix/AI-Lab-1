@@ -46,15 +46,18 @@ n_actions(mg::PredatorPreyHexWorldMG, i::Int) = length(ordered_actions(mg, i))
 n_joint_actions(mg::PredatorPreyHexWorldMG) = length(ordered_joint_actions(mg))
 
 function transition(mg::PredatorPreyHexWorldMG, s, a, s′)
-    # When a prey is caught (new prey born), it teleports to a random location and the predator remains (eating).
-    # Otherwise, both transition following HexWorldMDP.
+
+    # Khi prey bị bắt, prey mới sẽ được sinh ra, rồi dịch chuyển ngẫu nhiên tới một vị trí nào đó trên hex map nên tỉ lệ sẽ là 1/12. Còn predator sẽ đứng yên
     if s[1] == s[2]
         prob = Float64(s′[1] == s[1]) / length(mg.hexes)
         #display(prob)
     else
-        # vì cố 2 agents nên nhân lại
+
+
         # display(mg.hexWorldDiscreteMDP.T[:, :, 1])
-        # display("\n")
+
+        # Ngược lại, transition cả 2 sẽ theo HexWorld
+        # Vì cố 2 agents nên nhân lại
         prob = mg.hexWorldDiscreteMDP.T[s[1], a[1], s′[1]] * mg.hexWorldDiscreteMDP.T[s[2], a[2], s′[2]]
     end
     # xác suất transition của cả 2 agents
