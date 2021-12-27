@@ -1,3 +1,16 @@
+using Pkg
+
+using Distributions
+struct MG
+    γ  # discount factor
+    ℐ  # agents
+    𝒮  # state space
+    𝒜  # joint action space
+    T  # transition function
+    R  # joint reward function
+end
+
+
 include("discrete_mdp.jl")
 include("hexworld.jl")
 include("simplegame.jl")
@@ -11,6 +24,7 @@ using Distributions
 using CategoricalArrays
 using LinearAlgebra
 using GridInterpolations
+using Ipopt
 
 
 
@@ -118,6 +132,24 @@ end
 
 
 
+
+struct MGPolicy
+    p # dictionary mapping states to simple game policies
+    MGPolicy(p::Base.Generator) = new(Dict(p))
+end
+
+# ở ulatr (πi::SimpleGamePolicy)(ai)
+(πi::MGPolicy)(s, ai) = πi.p[s](ai)
+(πi::SimpleGamePolicy)(s, ai) = πi(ai)
+
+probability(𝒫::MG, s, π, a) = prod(πj(s, aj) for (πj, aj) in zip(π, a))
+reward(𝒫::MG, s, π, i) =
+    sum(𝒫.R(s, a)[i] * probability(𝒫, s, π, a) for a in joint(𝒫.𝒜))
+transition(𝒫::MG, s, π, s′) =
+    sum(𝒫.T(s, a, s′) * probability(𝒫, s, π, a) for a in joint(𝒫.𝒜))
+
+
+
 mutable struct MGFictitiousPlay
     𝒫 # Markov game
     i # agent index
@@ -184,7 +216,7 @@ function (πi::MGFictitiousPlay)(s)
     # joint => [SimpleGamePolicy,MGPolicy ]; [MGPolicy,SimpleGamePolicy]
     # SimpleGamePolicy (ai => 1.0), aj  => 0
 
-    # tìm action cho agent i => SimpleGamePolicy => tính Q(ai) => qđ chọn ai 
+    # tìm action cho agent i => SimpleGamePolicy => tính Q(ai) => quyến định chọn ai 
     # đối thủ => MGPolicy => tính hết A
     Q(ai) = Q(s, joint(π, SimpleGamePolicy(ai), i))
     # index của max element
@@ -243,13 +275,13 @@ function randstep(𝒫::MG, s, a)
     return s′, r
 end
 function simulate(𝒫::MG, π, k_max, b)
-    cacheState = Vector{Tuple{Int64, Int64}}()
+    cacheState = Vector{Tuple{Int64,Int64}}()
     # random vị trí state của 2 agent
     s = rand(b)
     # k_max: iteration
     for k = 1:k_max
         # println("s => ", s)
-        push!(cacheState,s)
+        push!(cacheState, s)
         # (): return key, key la action ai cua SimpleGamePolicy
         # a: (action cua 1, action cua 2)
         a = Tuple(πi(s)() for πi in π)
@@ -265,7 +297,7 @@ function simulate(𝒫::MG, π, k_max, b)
         # sử dụng state này làm s
         s = s′
     end
-    return cacheState,π
+    return cacheState, π
 end
 
 
@@ -277,8 +309,8 @@ mg = MG(p)
 π = [MGFictitiousPlay(mg, i) for i in 1:2]
 #display(π)
 print("version ----------------------------------------\n\n\n\n\n")
-k_max=11
-cacheState, policy=simulate(mg, π, k_max, mg.𝒮)
+k_max = 11
+cacheState, policy = simulate(mg, π, k_max, mg.𝒮)
 # display(cacheState)
-drawPredatorPreyHW(cacheState,k_max)
+drawPredatorPreyHW(cacheState, k_max)
 
