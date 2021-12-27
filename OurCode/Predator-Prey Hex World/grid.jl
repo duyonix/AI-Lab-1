@@ -17,7 +17,9 @@ function drawArrow(centerHexagon,startState,endState)
     end
 end
 
-function drawPredatorPreyHW(cacheState,iterations)
+function drawPredatorPreyHW(cacheStates,rewards,iterations)
+    display(cacheStates)
+    display(rewards)
     discrete = [2,3,4,8,10,12,13,15,16,17,18,19]
     state = 1:12
     
@@ -28,7 +30,7 @@ function drawPredatorPreyHW(cacheState,iterations)
     Drawing(width*2, height*floor(iterations/2))
     background("white")
     p=nothing
-    for iter in 1:iterations-1
+    for iter in 1:iterations
         centerHexagon = Vector{Point}()
         startPoint = nothing
         
@@ -41,8 +43,11 @@ function drawPredatorPreyHW(cacheState,iterations)
         end
         sethue("black")
         fontsize(25)
-        text(string(iter), startPoint,halign=:center, valign = :middle)
-
+        text(string(iter-1), startPoint,halign=:center, valign = :middle)
+        printReward = string(rewards[iter][1], "   ", string(rewards[iter][2]))
+        fontsize(20)
+        sethue("red")
+        text(printReward,startPoint+Point(400,-10),halign=:right, valign = :bottom)
         
         j=1
         sethue("white")
@@ -64,7 +69,7 @@ function drawPredatorPreyHW(cacheState,iterations)
             end
             
         end
-        drawArrow(centerHexagon,cacheState[iter],cacheState[iter+1])
+        drawArrow(centerHexagon,cacheStates[iter],cacheStates[iter+1])
     end
 
     finish()
