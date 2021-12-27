@@ -9,18 +9,26 @@ struct MG
     T  # transition function
     R  # joint reward function
 end
+
+
+include("discrete_mdp.jl")
+include("hexworld.jl")
+include("simplegame.jl")
+include("helper.jl")
+include("mg.jl")
+include("grid.jl")
+
 using Random
 using JuMP
-# using Ipopt
 using Distributions
 using CategoricalArrays
 using LinearAlgebra
 using GridInterpolations
-using Random
+using Ipopt
 
-include("../mdp/discrete_mdp.jl")
-include("../mdp/hexworld.jl")
-include("../simple_game/simplegame.jl")
+
+
+
 struct PredatorPreyHexWorldMG
     hexes::Vector{Tuple{Int,Int}}
     hexWorldDiscreteMDP::DiscreteMDP
@@ -117,7 +125,7 @@ function PredatorPreyHexWorld()
         ],
         HexWorldRBumpBorder,
         HexWorldPIntended,
-        0.9
+        HexWorldDiscountFactor
     )
     return PredatorPreyHexWorld
 end
@@ -267,13 +275,18 @@ function randstep(𝒫::MG, s, a)
     return s′, r
 end
 function simulate(𝒫::MG, π, k_max, b)
+    cacheState = Vector{Tuple{Int64,Int64}}()
     # random vị trí state của 2 agent
     s = rand(b)
     # k_max: iteration
     for k = 1:k_max
+        # println("s => ", s)
+        push!(cacheState, s)
         # (): return key, key la action ai cua SimpleGamePolicy
         # a: (action cua 1, action cua 2)
         a = Tuple(πi(s)() for πi in π)
+
+        # println("-----------  a => ", a)
         #display(a)
         #random state mới
         s′, r = randstep(𝒫, s, a)
@@ -284,38 +297,20 @@ function simulate(𝒫::MG, π, k_max, b)
         # sử dụng state này làm s
         s = s′
     end
-    return π
+    return cacheState, π
 end
+
+
 
 
 p = PredatorPreyHexWorld()
 # display(p)
 mg = MG(p)
-# print("\nAgents:\n")
-
-π = [MGFictitiousPlay(mg, i) for i in 1:2]
-
-
-
-
-
-# display(mg.ℐ)
-# print("\nJoint action space:\n")
-# display(mg.𝒜)
-# print("\nState space:\n")
-# display(mg.𝒮)
-
-# print("\nTransition function:\n")
-
-# display(mg.T)
-# print("\nJoint reward function:\n")
-
-# display(mg.R)
-
 π = [MGFictitiousPlay(mg, i) for i in 1:2]
 #display(π)
 print("version ----------------------------------------\n\n\n\n\n")
-display(simulate(mg, π, 10, mg.𝒮))
-# display(mg)
-#print(methods(x))
-# ----------------------
+k_max = 11
+cacheState, policy = simulate(mg, π, k_max, mg.𝒮)
+# display(cacheState)
+drawPredatorPreyHW(cacheState, k_max)
+
