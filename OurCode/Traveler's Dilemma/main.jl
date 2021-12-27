@@ -2,12 +2,8 @@
 # from The MIT Press; Cambridge, Massachusetts; London, England
 
 import Pkg
-Pkg.add("Plots")
 import JuMP
 import LinearAlgebra
-
-using JuMP
-using LinearAlgebra
 using Plots
 
 # Model SimpleGame is a fundamental model for multiagent reasoning
