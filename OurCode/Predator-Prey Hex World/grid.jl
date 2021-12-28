@@ -75,7 +75,8 @@ function drawPredatorPreyHW(cacheStates,rewards, iterations)
 
         end
         isCaptured = false
-        if(iter > 0 && rewards[iter+1][1]==10)
+        # nếu bước tiếp theo bị captured
+        if(rewards[iter+1][1]-rewards[iter][1]==10)
             isCaptured = true
         end
         drawArrow(centerHexagon,cacheStates[iter],cacheStates[iter+1],isCaptured)
