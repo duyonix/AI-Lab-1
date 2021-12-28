@@ -380,7 +380,7 @@ mg = MG(p)
 π = [MGFictitiousPlay(mg, i) for i in 1:2]
 #display(π)
 print("version ----------------------------------------\n\n\n\n\n")
-k_max=100
+k_max=10
 v,policy=simulate(mg, π, k_max, mg.𝒮)
 
 # display(v)
@@ -391,7 +391,8 @@ v,policy=simulate(mg, π, k_max, mg.𝒮)
 # colName = [:east :north_east :north_west :west :south_west :south_east]
 model1= @df v.model[1] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east],legend=false, xlabel="iteration",title="opponent model - predator")
 model2= @df v.model[2] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east],legend=false,title="opponent model - prey")
-policy1= @df v.policy[1] plot(0:k_max,[:east :north_east :north_west :west :south_west :south_east],legend=:outertopleft,title="policy - predator")
+policy1= @df v.policy[1] plot(0:k_max,[:east :north_east :north_west :west :south_west :south_east],legend=false,title="policy - predator", framestyle = :none)
 policy2= @df v.policy[2] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east],legend=false,xlabel="iteration",title="policy - prey")
 
-plot(model2,policy1,model1,policy2,layout=(2,2),size=(900,700), grid=:off)#,ylim=(-0.05,1))
+
+plot(model2,policy1,model1,policy2,layout=(2,2),size=(1000,700), grid=:off)#,ylim=(-0.05,1))
