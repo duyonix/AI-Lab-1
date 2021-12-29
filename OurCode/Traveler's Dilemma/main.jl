@@ -90,7 +90,7 @@ end
 joint(X) = vec(collect(Iterators.product(X...)))  # construct joint action space from X
 joint(π, πi, i) = [i == j ? πi : πj for (j, πj) in enumerate(π)]  # replace π(i) with πi
 
-# function to  compute the utility associated with executing joint policy π in the game 𝒫 from the perspective of agent i.
+# function to compute the utility associated with executing joint policy π in the game 𝒫 from the perspective of agent i.
 function utility(𝒫::SimpleGame, π, i)
     𝒜, R = 𝒫.𝒜, 𝒫.R
     p(a) = prod(πj(aj) for (πj, aj) in zip(π, a))
@@ -177,13 +177,15 @@ simpleGame = Travelers()  # simpleGame::Travelers
 P = SimpleGame(simpleGame) # P is a SimpleGame instance according to simpleGame
 
 # example of experiment 1: Iterated Best Response
-# IBR = IteratedBestResponse(P, 100) # IBR is used for finding policy for computer agents
+# IBR = IteratedBestResponse(P, 1000) # IBR is used for finding policy for computer agents
 # π1 = solve(IBR, P)
-# print(π1)
+# # print(π1)
+# println("agent 1: ", π1[1])
+# println("agent 2: ", π1[2])
 
 # example of experiment 2: Hierarchical Softmax
 # run the code below in REPL to see the visualization
-HS = HierarchicalSoftmax(P, 0.5, 1000) # HS is used for finding policy for human agents
+HS = HierarchicalSoftmax(P, 0.5, 100) # HS is used for finding policy for human agents
 π2 = solve(HS, P)
 
 # visualize result with Plots
