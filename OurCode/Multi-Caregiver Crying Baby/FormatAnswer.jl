@@ -1,4 +1,4 @@
-include("../POMG/ConditionalPlan.jl")
+include("../helpers/POMG/ConditionalPlan.jl")
 
 vectorAns=[]
 

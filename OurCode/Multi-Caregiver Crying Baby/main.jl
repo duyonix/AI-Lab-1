@@ -1,13 +1,13 @@
 import Pkg; Pkg.add("Parameters")
 using Random
 include("BabyPOMG.jl")
-include("../POMG/ConditionalPlan.jl")
-include("../POMG/POMG.jl")
-include("../POMG/POMGDynamicProgramming.jl")
-include("../POMG/POMGNashEquilibrium.jl")
-include("../SimpleGame/SimpleGame.jl")
-include("../SimpleGame/SimpleGamePolicy.jl")
-include("../SimpleGame/NashEquilibrium.jl")
+include("../helpers/POMG/ConditionalPlan.jl")
+include("../helpers/POMG/POMG.jl")
+include("../helpers/POMG/POMGDynamicProgramming.jl")
+include("../helpers/POMG/POMGNashEquilibrium.jl")
+include("../helpers/SimpleGame/SimpleGame.jl")
+include("../helpers/SimpleGame/SimpleGamePolicy.jl")
+include("../helpers/SimpleGame/NashEquilibrium.jl")
 include("FormatAnswer.jl")
 
 function MultiCaregiverCryingBaby()
@@ -98,7 +98,7 @@ pomg=POMG(multicaregiver_cryingbaby) # return POMG instance from babyPOMG instan
 b=[0.5,0.5] # initial state distribution, b[sated]=b[hungry]=0.5, we can set this to [0.2, 0.8]
 d=3 # depth of conditional plans
 
-# pomgDP=POMGDynamicProgramming(b, 5)
+# pomgDP=POMGDynamicProgramming(b, 5) # uncomment 2 lines and comment 2 lines to run POMGDP
 pomgNash=POMGNashEquilibrium(b, d)
 # ans=solve(pomgDP, pomg)
 ans=solve(pomgNash, pomg)
