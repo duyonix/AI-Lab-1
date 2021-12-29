@@ -1,4 +1,5 @@
-import Pkg; Pkg.add("Parameters")
+import Pkg;
+Pkg.add("Parameters");
 using Random
 include("BabyPOMG.jl")
 include("../helpers/POMG/ConditionalPlan.jl")
@@ -14,7 +15,7 @@ function MultiCaregiverCryingBaby()
     BabyPOMDP = CryingBaby()
     return BabyPOMG(BabyPOMDP)
 end
-    
+
 function create_conditional_plans(𝒫, d)
     # create all conditional plan with depth d from P::POMG
     ℐ, 𝒜, 𝒪 = 𝒫.ℐ, 𝒫.𝒜, 𝒫.𝒪
@@ -31,7 +32,7 @@ function expand_conditional_plans(𝒫, Π)
 end
 
 
-    
+
 function solve(M::POMGNashEquilibrium, 𝒫::POMG)
     # step 1: convert POMG to SimpleGame
     # step 2: find Nash Equilibrium of that SimpleGame
@@ -42,7 +43,7 @@ function solve(M::POMGNashEquilibrium, 𝒫::POMG)
     π = solve(NashEquilibrium(), 𝒢)
     return Tuple(argmax(πi.p) for πi in π)
 end
-    
+
 function solve(M::POMGDynamicProgramming, 𝒫::POMG)
     ℐ, 𝒮, 𝒜, R, γ, b, d = 𝒫.ℐ, 𝒫.𝒮, 𝒫.𝒜, 𝒫.R, 𝒫.γ, M.b, M.d
     Π = [[ConditionalPlan(ai) for ai in 𝒜[i]] for i in ℐ]
@@ -54,7 +55,7 @@ function solve(M::POMGDynamicProgramming, 𝒫::POMG)
     π = solve(NashEquilibrium(), 𝒢)
     return Tuple(argmax(πi.p) for πi in π)
 end
-    
+
 function prune_dominated!(Π, 𝒫::POMG)
     # prune any policy that is dominated by another policies
     done = false
@@ -71,36 +72,33 @@ function prune_dominated!(Π, 𝒫::POMG)
         end
     end
 end
-    
+
 function is_dominated(𝒫::POMG, Π, i, πi)
     # check if policy is dominated
     ℐ, 𝒮 = 𝒫.ℐ, 𝒫.𝒮
     jointΠnoti = joint([Π[j] for j in ℐ if j ≠ i])
-    π(πi′, πnoti) = [j==i ? πi′ : πnoti[j>i ? j-1 : j] for j in ℐ]
+    π(πi′, πnoti) = [j == i ? πi′ : πnoti[j > i ? j - 1 : j] for j in ℐ]
     Ui = Dict((πi′, πnoti, s) => evaluate_plan(𝒫, π(πi′, πnoti), s)[i]
-    for πi′ in Π[i], πnoti in jointΠnoti, s in 𝒮)
+              for πi′ in Π[i], πnoti in jointΠnoti, s in 𝒮)
     model = Model(Ipopt.Optimizer)
     @variable(model, δ)
     @variable(model, b[jointΠnoti, 𝒮] ≥ 0)
     @objective(model, Max, δ)
-    @constraint(model, [πi′=Π[i]],
-    sum(b[πnoti, s] * (Ui[πi′, πnoti, s] - Ui[πi, πnoti, s])
-    for πnoti in jointΠnoti for s in 𝒮) ≥ δ)
-        @constraint(model, sum(b) == 1)
-        optimize!(model)
+    @constraint(model, [πi′ = Π[i]],
+        sum(b[πnoti, s] * (Ui[πi′, πnoti, s] - Ui[πi, πnoti, s])
+            for πnoti in jointΠnoti for s in 𝒮) ≥ δ)
+    @constraint(model, sum(b) == 1)
+    optimize!(model)
     return value(δ) ≥ 0
 end
-    
 
-multicaregiver_cryingbaby=MultiCaregiverCryingBaby() # return instance babyPOMG
-pomg=POMG(multicaregiver_cryingbaby) # return POMG instance from babyPOMG instance
 
-b=[0.5,0.5] # initial state distribution, b[sated]=b[hungry]=0.5, we can set this to [0.2, 0.8]
-d=3 # depth of conditional plans
+b = [0.5, 0.5] # initial state distribution, b[sated]=b[hungry]=0.5, we can set this to [0.2, 0.8]
+d = 3 # depth of conditional plans
 
 # pomgDP=POMGDynamicProgramming(b, 5) # uncomment 2 lines and comment 2 lines to run POMGDP
 pomgNash=POMGNashEquilibrium(b, d)
 # ans=solve(pomgDP, pomg)
-ans=solve(pomgNash, pomg)
+ans = solve(pomgNash, pomg)
 printAns(ans)
-     
+
