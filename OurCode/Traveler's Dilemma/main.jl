@@ -5,14 +5,7 @@ import Pkg
 import JuMP
 import LinearAlgebra
 using Plots
-
-# Model SimpleGame is a fundamental model for multiagent reasoning
-struct SimpleGame
-    γ   # discount factor
-    ℐ   # agents
-    𝒜   # joint action spaces
-    R   # joint reward function
-end
+include("../helpers/SimpleGame/SimpleGame.jl")
 
 struct Travelers end    # Model for Game Theory: Travelers Dilemma 
 
