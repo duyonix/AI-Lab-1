@@ -174,7 +174,7 @@ function MGFictitiousPlay(𝒫::MG, i)
     # ℐ  # agents
     # 𝒮  # state space
     # 𝒜  # joint action space
-    # T  # transition function
+    # T  # transition function 
     # R  # joint reward function 
     # (agent, in (12,12), action) => 1
     # display(Ni)
@@ -193,7 +193,7 @@ function (πi::MGFictitiousPlay)(s)
     # MGPolicy(Dict{Tuple{Int64, Int64}, SimpleGamePolicy}
     πi′(i) = MGPolicy(s => πi′(i, s) for s in 𝒮)
 
-
+    display(i)
 
     π = [πi′(i) for i in ℐ]
     # display(MGPolicy(s => πi′(i, s) for s in [(1,2),(2,3)]))
@@ -206,7 +206,7 @@ function (πi::MGFictitiousPlay)(s)
     # U: đánh giá state s
     U(s, π) = sum(πi.Qi[s, a] * probability(𝒫, s, π, a) for a in joint(𝒜))
 
-    # println(U((1,2),π))
+    # println(U((1,2),π)) 
 
 
     # action value function : Q-funtion: 7.12
@@ -230,7 +230,7 @@ function (πi::MGFictitiousPlay)(s)
     # đi theo action nào thì khả năng nhận dc reward cao nhất
     ai = argmax(Q, 𝒫.𝒜[πi.i])
 
-    # println(ai)
+    display(ai)
     # display(SimpleGamePolicy(ai))
 
     # return Dict(): action nào có Q-value lớn nhất => xs =1
@@ -290,7 +290,7 @@ function simulate(𝒫::MG, π, k_max, b)
         a = Tuple(πi(s)() for πi in π)
 
         # println("-----------  a => ", a)
-        #display(a)
+        display(a)
         #random state mới
         s′, r = randstep(𝒫, s, a)
         for πi in π
