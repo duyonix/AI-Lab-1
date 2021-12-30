@@ -246,9 +246,9 @@ P = SimpleGame(simpleGame)
 pi = [(FictitiousPlay(P, i)) for i in 1:2]
 
 # iteration: 100
-k_max = 100
+k_max = 1000000
 v, s = simulate(P, pi, k_max)
-
+display(s)
 # visualize
 model1 = @df v.model[1] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], xlabel = "iteration", title = "opponent model (agent 1)")
 model2 = @df v.model[2] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], title = "opponent model (agent 2)")
