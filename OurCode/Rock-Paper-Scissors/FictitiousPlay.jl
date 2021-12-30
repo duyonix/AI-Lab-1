@@ -24,11 +24,12 @@ struct RockPaperScissors end
 n_agents(simpleGame::RockPaperScissors) = 2
 # 3 actions
 ordered_actions(simpleGame::RockPaperScissors, i::Int) = [:rock, :paper, :scissors]
-# tạo mảng tuple 2 actions => joint action space
+# create array tuple 2 actions => joint action space
 ordered_joint_actions(simpleGame::RockPaperScissors) = vec(collect(Iterators.product([ordered_actions(simpleGame, i) for i = 1:n_agents(simpleGame)]...)))
 n_joint_actions(simpleGame::RockPaperScissors) = length(ordered_joint_actions(simpleGame))
 n_actions(simpleGame::RockPaperScissors, i::Int) = length(ordered_actions(simpleGame, i))
 
+# reward function
 function reward(simpleGame::RockPaperScissors, i::Int, a)
     if i == 1
         noti = 2
@@ -59,7 +60,7 @@ end
 function joint_reward(simpleGame::RockPaperScissors, a)
     return [reward(simpleGame, i, a) for i = 1:n_agents(simpleGame)]
 end
-# Khởi tạo Simple Game cho bài toán RockPaperScissors
+# initialize Simple Game for RockPaperScissors 
 function SimpleGame(simpleGame::RockPaperScissors)
     return SimpleGame(
         0.9,
@@ -72,7 +73,7 @@ end
 # Policy là 1 dictionary action-probability
 struct SimpleGamePolicy
     p # dictionary mapping actions to probabilities
-    # Để tạo ra struct SimpleGamePolicy chứa nội dung là 1 dictionary
+    # create struct SimpleGamePolicy containing 1 dictionary
     function SimpleGamePolicy(p::Base.Generator)
         return SimpleGamePolicy(Dict(p))
     end
@@ -93,29 +94,29 @@ struct SetCategorical{S}
     elements::Vector{S} # Set elements (could be repeated)
     distr::Categorical # Categorical distribution over set elements
 
-    # support thêm mấy method đánh giá function
-    # normalize: chuyển về 0->1 giữ nguyên tỉ lệ
 
-    # norm(arr, loại 1|2): đo k/c 2 điểm
-    # loại 1: tổng trị tuyet đối
-    # loại 2: norm(arr) căn (tổng các bình phương)
+    # normalize: convert to 0->1 and keep the ratio
+
+    # norm(arr, type 1|2): 
+    # type 1: sum of absolute value
+    # type 2: norm(arr) sqrt (sum of square)
     function SetCategorical(elements::AbstractVector{S}) where {S}
         print("SetCategorical\n")
 
-        weights = ones(length(elements)) # khoi tao tần số mỗi cái là 1
-        return new{S}(elements, Categorical(normalize(weights, 1))) # tính xác suất bằng nhau
+        weights = ones(length(elements)) # initialize weight of each element is 1
+        return new{S}(elements, Categorical(normalize(weights, 1))) # convert to propability
     end
 
 
     function SetCategorical(elements::AbstractVector{S}, weights::AbstractVector{Float64}) where {S}
-        #print("SetCategorical with weights\n")
+
         ℓ₁ = norm(weights, 1)
-        # trường hợp ko có element nào xuất hiện (= 0 all)
+        # not exist any element (= 0 all)
         if ℓ₁ < 1e-6 || isinf(ℓ₁)
-            return SetCategorical(elements) # lúc đầu chạy
+            return SetCategorical(elements) # first time
         end
+        # normalize the weight to probability for each e (0->1)
         distr = Categorical(normalize(weights, 1))
-        # nghĩ: weight: tần số => tính xác suất cho mỗi elements
         return new{S}(elements, distr)
     end
 end
@@ -126,36 +127,34 @@ Distributions.rand(D::SetCategorical) = D.elements[rand(D.distr)]
 Distributions.rand(D::SetCategorical, n::Int) = D.elements[rand(D.distr, n)]
 
 function Distributions.pdf(D::SetCategorical, x)
-    # zip: đóng gói theo cặp
-    # lấy xác suất của x trong elements, còn lại = 0
+    # zip: pack to a pair
+    # sum = distr.p of x in D.elements, if not x => 0
     sum(e == x ? w : 0.0 for (e, w) in zip(D.elements, D.distr.p))
 end
 
 function (πi::SimpleGamePolicy)()
-    #print("πi::SimpleGamePolicy\n")
-    # từ 2 arr keys + values (tần ssuất) => 2 arr keys + xác suất
+    # from 2 arrays: keys + values => 2 arr keys + propability (weights converted to 0->1)
     D = SetCategorical(collect(keys(πi.p)), collect(values(πi.p)))
     return rand(D)  # return random action
 end
 
-joint(X) = vec(collect(Iterators.product(X...)))  # tạo joint action space từ X
-joint(π, πi, i) = [i == j ? πi : πj for (j, πj) in enumerate(π)]  # thay thế π[i] bằng πi trong π
+joint(X) = vec(collect(Iterators.product(X...)))  # create joint action space from X
+joint(π, πi, i) = [i == j ? πi : πj for (j, πj) in enumerate(π)]  # replace π[i] with πi in π
 
 function utility(𝒫::SimpleGame, π, i)
-    #print("utility\n")
+
     𝒜, R = 𝒫.𝒜, 𝒫.R
-    # Xác suất xảy ra action a 
+    # probability action a occur
     p(a) = prod(πj(aj) for (πj, aj) in zip(π, a))
-    # tính U: đánh giá độ thiết thực của policy của thằng agent i
-    # a: 2 reward của 2 thằng
+    # U: evaluate the practicality of agent i's policy 
+
     return sum(R(a)[i] * p(a) for a in joint(𝒜))  # the utility of agent i with joint policy π
 end
 
 function best_response(𝒫::SimpleGame, π, i)
-    #print("best_response\n")
     U(ai) = utility(𝒫, joint(π, SimpleGamePolicy(ai), i), i)
     ai = argmax(U, 𝒫.𝒜[i])
-    return SimpleGamePolicy(ai)  # trả về deterministic best response với joint policy π
+    return SimpleGamePolicy(ai)  # return deterministic best response with joint policy π
 end
 
 
@@ -176,13 +175,13 @@ end
 
 
 function simulate(𝒫::SimpleGame, π, k_max)
-    #π = [SimpleGamePolicy(ai => 1.0 for ai in 𝒜i) for 𝒜i in 𝒫.𝒜] 
+
     v = VisualizeRPS(k_max)
-    # ván 1: model => 1/3
+    # round 1: model => 1/3
     for k = 1:k_max
-        # return random action
+        # return random action from (πi::SimpleGamePolicy)()
         a = [πi() for πi in π]
-        # k=1: model=1/3 policy = a
+
         for πi in π
             update!(πi, a, v, k)
         end
@@ -194,24 +193,26 @@ end
 mutable struct FictitiousPlay
     𝒫 # simple game
     i # agent index
-    N # array of action count dictionaries => 2 Dict, mỗi Dict 3 actions tương ứng 3 counts => ra policy(kết quả)
-    # lưu của đối thủ để đưa quyết định đánh gì tiếp theo
-    πi # current policy => chỉ lưu 1 action được chọn hiện tại
+    N # array of action count dictionaries => 2 Dict, every Dict 3 actions corresponding to 3 counts => calculate policy(result)
+    # Save the opponent's counts to decide what next policy
+    πi # current policy => only 1 currently selected action
 end
 function FictitiousPlay(𝒫::SimpleGame, i)
-    # mảng gồm 2 Dict của 2 agents
-    # khởi tạo số lần ra mỗi action là 1 (counts)
+    # arrays consist of 2 Dict of 2 agents
+    # initialize the number of times each action is 1 (counts)
     N = [Dict(aj => 1 for aj in 𝒫.𝒜[j]) for j in 𝒫.ℐ]
-    πi = SimpleGamePolicy(ai => 1.0 for ai in 𝒫.𝒜[i])
+    πi = SimpleGamePolicy(ai => 1.0 / 3 for ai in 𝒫.𝒜[i])
     return FictitiousPlay(𝒫, i, N, πi)
 end
+# current policy (dict)
 (πi::FictitiousPlay)() = πi.πi()
+# probability of each actions
 (πi::FictitiousPlay)(ai) = πi.πi(ai)
 
 function update!(πi::FictitiousPlay, a, v, iteration)
     N, 𝒫, ℐ, i = πi.N, πi.𝒫, πi.𝒫.ℐ, πi.i
 
-    # hàm giúp tính toán được policy của agent j
+    # function to calculate policy của agent j
     p(j) = SimpleGamePolicy(aj => u / sum(values(N[j])) for (aj, u) in N[j])
     # update visualize policy
     v.policy[i][iteration, a[i]] = 1
@@ -221,32 +222,30 @@ function update!(πi::FictitiousPlay, a, v, iteration)
     v.model[i][iteration, :rock] = p(i).p[:rock]
     v.model[i][iteration, :paper] = p(i).p[:paper]
     v.model[i][iteration, :scissors] = p(i).p[:scissors]
-    # println("----- iteration: ",iteration)
-    # display(v.policy)
-    # display(v.model)
-    # println()
+
     for (j, aj) in enumerate(a)
         N[j][aj] += 1 # agent j with action aj +=1 count
     end
     # display(p(1))
-    # mảng 2 policy của 2 thằng
-    π = [p(j) for j in ℐ] # lấy policy (action-probability) của mình & opponent, policy được tính từ xác suất (được tính từ N), xong quăng vô best_response tính toán trả về πi.πi là action được chọn (quyết định)
-    # cập nhật current policy
+    # array 2 policy of 2 agents
+    π = [p(j) for j in ℐ]
+    # get policy (action-probability) of agent i & opponent, policy is calculated from probability (calculated from N), then use best_response to solve and return πi.πi is the selected action (choose)
+    # update current policy
     πi.πi = best_response(𝒫, π, i)
 
 end
 
 
-# -----------Chạy chương trình------------------------
-# Khởi tạo Simple Game RockPaperScissors P
+# -----------RUN------------------------
+# Initialize Simple Game RockPaperScissors P
 simpleGame = RockPaperScissors()
 P = SimpleGame(simpleGame)
 
-# Khởi tạo FictitiousPlay cho mỗi agent
+# Initialize FictitiousPlay for each agent
 pi = [(FictitiousPlay(P, i)) for i in 1:2]
 
 # iteration: 100
-k_max = 1000000
+k_max = 100
 v, s = simulate(P, pi, k_max)
 display(s)
 # visualize
