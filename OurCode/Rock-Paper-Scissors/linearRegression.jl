@@ -8,7 +8,8 @@ const global PAPER = 2
 const global SCISSORS = 3
 
 # read the preparing training dataset (initial)
-df = CSV.read("./trainingFirst.csv", DataFrame)
+
+df = CSV.read(joinpath(@__DIR__, "trainingFirst.csv"), DataFrame)
 # show the training dataset DataFrame
 show(df, allcols = true)
 
