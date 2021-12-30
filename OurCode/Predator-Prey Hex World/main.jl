@@ -24,8 +24,9 @@ using Distributions
 using CategoricalArrays
 using LinearAlgebra
 using GridInterpolations
-using Ipopt
-
+using DataFrames
+using StatsPlots
+using IndexedTables
 
 
 
@@ -64,7 +65,7 @@ function transition(mg::PredatorPreyHexWorldMG, s, a, s′)
     return prob
 end
 
-function reward(mg::PredatorPreyHexWorldMG, i::Int, s, a)
+function reward(mg::PredatorPreyHexWorldMG, i::Int, s,a)
     r = 0.0
 
     if i == 1
@@ -97,7 +98,7 @@ function MG(mg::PredatorPreyHexWorldMG)
         ordered_states(mg),
         [ordered_actions(mg, i) for i in 1:n_agents(mg)],
         (s, a, s′) -> transition(mg, s, a, s′),
-        (s, a) -> joint_reward(mg, s, a)
+        (s,a) -> joint_reward(mg, s,a)
     )
 end
 
@@ -114,7 +115,27 @@ function PredatorPreyHexWorldMG(hexes::Vector{Tuple{Int,Int}},
     return PredatorPreyHexWorldMG(hexes, mdp)
 end
 
+struct VisualizePPHW
+    model
+    policy
+    states
+    rewards
+    function VisualizePPHW(k_max)
+        k_max+=1
+        model = [DataFrame(east=zeros(k_max),north_east=zeros(k_max),north_west=zeros(k_max),west=zeros(k_max),south_west=zeros(k_max),south_east=zeros(k_max)),
+        DataFrame(east=zeros(k_max),north_east=zeros(k_max),north_west=zeros(k_max),west=zeros(k_max),south_west=zeros(k_max),south_east=zeros(k_max))]
+        policy= [DataFrame(east=zeros(k_max),north_east=zeros(k_max),north_west=zeros(k_max),west=zeros(k_max),south_west=zeros(k_max),south_east=zeros(k_max)),
+        DataFrame(east=zeros(k_max),north_east=zeros(k_max),north_west=zeros(k_max),west=zeros(k_max),south_west=zeros(k_max),south_east=zeros(k_max))]
+        states=Vector{Tuple{Int64, Int64}}()
+        rewards=Vector{Tuple{Int64, Int64}}()
 
+        push!(rewards,(0,0))
+        model[1][1,:].=[1/6,1/6,1/6,1/6,1/6,1/6]
+        model[2][1,:].=[1/6,1/6,1/6,1/6,1/6,1/6]
+        
+        return new(model,policy,states,rewards)
+    end
+end
 
 # const HexWorldRBumpBorder = -1.0 # Reward for falling off hex map
 # const HexWorldPIntended = 0.7 # Probability of going intended direction
@@ -236,13 +257,25 @@ function (πi::MGFictitiousPlay)(s)
     # return Dict(): action nào có Q-value lớn nhất => xs =1
     return SimpleGamePolicy(ai)
 end
-function update!(πi::MGFictitiousPlay, s, a, s′)
+function update!(πi::MGFictitiousPlay, s, a, s′,v,iteration)
     𝒫, i, Qi = πi.𝒫, πi.i, πi.Qi
     ℐ, 𝒮, 𝒜, T, R, γ = 𝒫.ℐ, 𝒫.𝒮, 𝒫.𝒜, 𝒫.T, 𝒫.R, 𝒫.γ
+
     # +1: tính U => Q => ai
     for (j, aj) in enumerate(a)
         πi.Ni[j, s, aj] += 1
     end
+
+    # update visualize
+    v.policy[i][iteration,a[i]]=1
+    
+    totalCount = sum(πi.Ni[i,S,ai] for S in 𝒮 for ai in 𝒜[i])
+    for ai in 𝒜[i]
+        v.model[i][iteration+1,ai]=sum(πi.Ni[i,S,ai] for S in 𝒮)/totalCount
+    end
+    
+    
+    
 
     # action => xác suất count
     πi′(i, s) = SimpleGamePolicy(ai => πi.Ni[i, s, ai] for ai in 𝒜[i])
@@ -277,30 +310,65 @@ function randstep(𝒫::MG, s, a)
     r = 𝒫.R(s, a)
     return s′, r
 end
+
+
+
+
+
 function simulate(𝒫::MG, π, k_max, b)
-    cacheState = Vector{Tuple{Int64,Int64}}()
+    v = VisualizePPHW(k_max)
     # random vị trí state của 2 agent
     s = rand(b)
+    while s[1]==s[2]
+        s = rand(b)
+    end
+    push!(v.states,s)
     # k_max: iteration
     for k = 1:k_max
         # println("s => ", s)
-        push!(cacheState, s)
         # (): return key, key la action ai cua SimpleGamePolicy
         # a: (action cua 1, action cua 2)
         a = Tuple(πi(s)() for πi in π)
-
+        
         # println("-----------  a => ", a)
         display(a)
         #random state mới
         s′, r = randstep(𝒫, s, a)
+        # println(s," => ",s′)
         for πi in π
             # update lại policy
-            update!(πi, s, a, s′)
+            update!(πi, s, a, s′,v,k)
         end
+        
+        # update reward visualize
+        
+        if(s[1] != s[2])
+            if(s[1]==s′[1])
+                r[1] = 0
+            end
+            if(s[2]==s′[2])
+                r[2] = 0
+            end
+        end
+        if(k > 1)
+            r[1]+=v.rewards[k][1]
+            r[2]+=v.rewards[k][2]
+        end
+        push!(v.rewards,Tuple(r))
+        push!(v.states,s′)
+
         # sử dụng state này làm s
         s = s′
+
     end
-    return cacheState, π
+
+# a dũ helper
+    a = Tuple(πi(s)() for πi in π)
+    for i in 1:2
+        v.policy[i][k_max+1,a[i]]=1
+    end
+
+    return v,π
 end
 
 
@@ -312,8 +380,19 @@ mg = MG(p)
 π = [MGFictitiousPlay(mg, i) for i in 1:2]
 #display(π)
 print("version ----------------------------------------\n\n\n\n\n")
-k_max = 11
-cacheState, policy = simulate(mg, π, k_max, mg.𝒮)
-# display(cacheState)
-drawPredatorPreyHW(cacheState, k_max)
+k_max=10
+v,policy=simulate(mg, π, k_max, mg.𝒮)
 
+# display(v)
+# drawPredatorPreyHW(v.states,v.rewards,k_max)
+
+# visualize
+
+# colName = [:east :north_east :north_west :west :south_west :south_east]
+model1= @df v.model[1] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east],legend=false, xlabel="iteration",title="opponent model - predator")
+model2= @df v.model[2] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east],legend=false,title="opponent model - prey")
+policy1= @df v.policy[1] plot(0:k_max,[:east :north_east :north_west :west :south_west :south_east],legend=false,title="policy - predator", framestyle = :none)
+policy2= @df v.policy[2] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east],legend=false,xlabel="iteration",title="policy - prey")
+
+
+plot(model2,policy1,model1,policy2,layout=(2,2),size=(1000,700), grid=:off)#,ylim=(-0.05,1))

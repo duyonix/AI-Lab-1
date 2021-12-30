@@ -1,6 +1,6 @@
 using Luxor, Colors
 
-function drawArrow(centerHexagon, startState, endState)
+function drawArrow(centerHexagon, startState, endState, isCaptured)
     # predator
     sethue("red")
     circle(centerHexagon[startState[1]], 10, :fill)
@@ -12,12 +12,16 @@ function drawArrow(centerHexagon, startState, endState)
     # prey
     sethue("cyan")
     circle(centerHexagon[startState[2]], 6, :fill)
+    
+    if(isCaptured)
+        sethue("grey")
+    end
     if (startState[2] != endState[2])
         arrow(centerHexagon[startState[2]], centerHexagon[endState[2]], linewidth = 4, arrowheadlength = 15, arrowheadangle = pi / 6)
     end
 end
 
-function drawPredatorPreyHW(cacheState, iterations)
+function drawPredatorPreyHW(cacheStates,rewards, iterations)
     discrete = [2, 3, 4, 8, 10, 12, 13, 15, 16, 17, 18, 19]
     state = 1:12
 
@@ -27,8 +31,8 @@ function drawPredatorPreyHW(cacheState, iterations)
     # Drawing(width*2, height*iterations/2,"predator-prey.png")
     Drawing(width * 2, height * floor(iterations / 2))
     background("white")
-    p = nothing
-    for iter in 1:iterations-1
+    p=nothing
+    for iter in 1:iterations
         centerHexagon = Vector{Point}()
         startPoint = nothing
 
@@ -41,10 +45,16 @@ function drawPredatorPreyHW(cacheState, iterations)
         end
         sethue("black")
         fontsize(25)
-        text(string(iter), startPoint, halign = :center, valign = :middle)
+        text(string(iter-1), startPoint,halign=:center, valign = :middle)
+        fontsize(20)
 
+        sethue("red")
+        text(string(rewards[iter][1]),startPoint+Point(350,-10),halign=:right, valign = :bottom)
+        
+        sethue("blue")
+        text(string(rewards[iter][2]),startPoint+Point(400,-10),halign=:right, valign = :bottom)
 
-        j = 1
+        j=1
         sethue("white")
         fontsize(17)
         for i in 1:20
@@ -64,7 +74,12 @@ function drawPredatorPreyHW(cacheState, iterations)
             end
 
         end
-        drawArrow(centerHexagon, cacheState[iter], cacheState[iter+1])
+        isCaptured = false
+        # nếu bước tiếp theo bị captured
+        if(rewards[iter+1][1]-rewards[iter][1]==10)
+            isCaptured = true
+        end
+        drawArrow(centerHexagon,cacheStates[iter],cacheStates[iter+1],isCaptured)
     end
 
     finish()
