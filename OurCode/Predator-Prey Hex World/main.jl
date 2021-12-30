@@ -209,7 +209,6 @@ function MGFictitiousPlay(𝒫::MG, i)
     # initialize with all state-action counts = 1
     # Ni = [(agent j, state s, action aj) => 1]
     Ni = Dict((j, s, aj) => 1.0 for j in ℐ for s in 𝒮 for aj in 𝒜[j])
-
     return MGFictitiousPlay(𝒫, i, Qi, Ni)
 end
 
@@ -227,7 +226,7 @@ function (πi::MGFictitiousPlay)(s)
     # MGPolicy(Dict{s => SimpleGamePolicy}
     πi′(i) = MGPolicy(s => πi′(i, s) for s in 𝒮)
 
-
+    display(i)
 
     π = [πi′(i) for i in ℐ]
 

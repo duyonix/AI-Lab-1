@@ -256,9 +256,13 @@ P = SimpleGame(simpleGame)
 pi = [(FictitiousPlay(P, i)) for i in 1:2]
 
 # iteration: 100
+<<<<<<< HEAD:OurCode/Rock-Paper-Scissors/main.jl
 k_max = 10000
+=======
+k_max = 1000000
+>>>>>>> main:OurCode/Rock-Paper-Scissors/FictitiousPlay.jl
 v, s = simulate(P, pi, k_max)
-
+display(s)
 # visualize
 model1 = @df v.model[1] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], xlabel = "iteration", title = "opponent model (agent 1)", ylim = (-0.05, 1))
 model2 = @df v.model[2] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], title = "opponent model (agent 2)", ylim = (-0.05, 1))
