@@ -1,8 +1,14 @@
 using Luxor, Colors
 
+colorCell = "grey93"
+colorPredator = "indianred1"
+colorPrey = "springgreen2"
+colorText = "black"
+colorCaptured = "darkgrey"
+
 function drawArrow(centerHexagon, startState, endState, isCaptured)
     # predator
-    sethue("red")
+    sethue(colorPredator)
     circle(centerHexagon[startState[1]], 10, :fill)
     if (startState[1] != endState[1])
         arrow(centerHexagon[startState[1]], centerHexagon[endState[1]], linewidth = 6, arrowheadlength = 20, arrowheadangle = pi / 6)
@@ -10,18 +16,18 @@ function drawArrow(centerHexagon, startState, endState, isCaptured)
 
 
     # prey
-    sethue("cyan")
+    sethue(colorPrey)
     circle(centerHexagon[startState[2]], 6, :fill)
     
     if(isCaptured)
-        sethue("grey")
+        sethue(colorCaptured)
     end
     if (startState[2] != endState[2])
         arrow(centerHexagon[startState[2]], centerHexagon[endState[2]], linewidth = 4, arrowheadlength = 15, arrowheadangle = pi / 6)
     end
 end
 
-function drawPredatorPreyHW(cacheStates,rewards, iterations)
+function drawPredatorPreyHW(cacheStates,rewards, captured,iterations)
     discrete = [2, 3, 4, 8, 10, 12, 13, 15, 16, 17, 18, 19]
     state = 1:12
 
@@ -43,27 +49,26 @@ function drawPredatorPreyHW(cacheStates,rewards, iterations)
             startPoint = Point(50, 50 + height * (floor(iter / 2)))
             grid = GridHex(startPoint, radius, 500)
         end
-        sethue("black")
+        sethue(colorText)
         fontsize(25)
         text(string(iter-1), startPoint,halign=:center, valign = :middle)
         fontsize(20)
 
-        sethue("red")
+        sethue(colorPredator)
         text(string(rewards[iter][1]),startPoint+Point(350,-10),halign=:right, valign = :bottom)
         
-        sethue("blue")
+        sethue(colorPrey)
         text(string(rewards[iter][2]),startPoint+Point(400,-10),halign=:right, valign = :bottom)
 
         j=1
-        sethue("white")
         fontsize(17)
         for i in 1:20
             if i in discrete
-                sethue(0, 0, 0)
+                sethue(colorCell)
                 p = nextgridpoint(grid)
                 push!(centerHexagon, p)
                 ngon(p, radius - 5, 6, pi / 2, :fillstroke)
-                sethue("white")
+                sethue(colorText)
 
                 text(string(state[j]), p - Point(0, 20), halign = :center, valign = :middle)
                 j += 1
@@ -74,12 +79,12 @@ function drawPredatorPreyHW(cacheStates,rewards, iterations)
             end
 
         end
-        isCaptured = false
-        # nếu bước tiếp theo bị captured
-        if(rewards[iter+1][1]-rewards[iter][1]==10)
-            isCaptured = true
-        end
-        drawArrow(centerHexagon,cacheStates[iter],cacheStates[iter+1],isCaptured)
+        # isCaptured = false
+        # # nếu bước tiếp theo bị captured
+        # if(rewards[iter+1][1]-rewards[iter][1]==10)
+        #     isCaptured = true
+        # end
+        drawArrow(centerHexagon,cacheStates[iter],cacheStates[iter+1],iter in captured)
     end
 
     finish()
