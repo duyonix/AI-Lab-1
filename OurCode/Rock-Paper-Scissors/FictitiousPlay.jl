@@ -162,13 +162,15 @@ end
 struct VisualizeRPS
     model
     policy
+    rewards
 
     function VisualizeRPS(k_max)
         model = [DataFrame(rock = zeros(k_max), paper = zeros(k_max), scissors = zeros(k_max)),
             DataFrame(rock = zeros(k_max), paper = zeros(k_max), scissors = zeros(k_max))]
         policy = [DataFrame(rock = zeros(k_max), paper = zeros(k_max), scissors = zeros(k_max)),
             DataFrame(rock = zeros(k_max), paper = zeros(k_max), scissors = zeros(k_max))]
-        return new(model, policy)
+        rewards = Vector{Tuple{Int64,Int64}}()
+        return new(model, policy, rewards)
     end
 end
 
@@ -185,6 +187,14 @@ function simulate(𝒫::SimpleGame, π, k_max)
         for πi in π
             update!(πi, a, v, k)
         end
+
+        # update reward visualize
+        reward = 𝒫.R(a)
+        if (k > 1)
+            reward[1] += v.rewards[k-1][1]
+            reward[2] += v.rewards[k-1][2]
+        end
+        push!(v.rewards, Tuple(reward))
     end
 
     return v, π
@@ -244,14 +254,23 @@ P = SimpleGame(simpleGame)
 # Initialize FictitiousPlay for each agent
 pi = [(FictitiousPlay(P, i)) for i in 1:2]
 
-# iteration: 100
-k_max = 100
+# iteration: 1000000
+
+k_max = 1000000
+
 v, s = simulate(P, pi, k_max)
 display(s)
 # visualize
-model1 = @df v.model[1] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], xlabel = "iteration", title = "opponent model (agent 1)")
-model2 = @df v.model[2] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], title = "opponent model (agent 2)")
-policy1 = @df v.policy[1] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], legend = false, title = "policy agent 1")
-policy2 = @df v.policy[2] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], legend = false, xlabel = "iteration", title = "policy agent 2")
+model1 = @df v.model[1] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], xlabel = "iteration", title = "opponent model (agent 1)", ylim = (-0.05, 1))
+model2 = @df v.model[2] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], title = "opponent model (agent 2)", ylim = (-0.05, 1))
+policy1 = @df v.policy[1] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], legend = false, title = "policy agent 1", ylim = (-0.05, 1))
+policy2 = @df v.policy[2] plot(1:k_max, [:rock :paper :scissors], colour = [:red :blue :green], legend = false, xlabel = "iteration", title = "policy agent 2", ylim = (-0.05, 1))
 
-plot(model2, policy1, model1, policy2, layout = (2, 2), size = (900, 700), grid = :off, ylim = (-0.05, 1))
+r1 = [reward[1] for reward in v.rewards]
+r2 = [reward[2] for reward in v.rewards]
+
+reward1 = plot(1:k_max, r1, legend = false, title = "reward agent 1")
+reward2 = plot(1:k_max, r2, legend = false, title = "reward agent 2", xlabel = "iteration")
+
+plot(model2, policy1, reward1, model1, policy2, reward2, layout = (2, 3), size = (1200, 750), grid = :off)
+
