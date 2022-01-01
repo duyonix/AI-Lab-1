@@ -9,6 +9,6 @@ struct MDP
 end
 
 #Constructor MDP 
-function MDP(T::Array{Float64, 3}, R::Array{Float64, 2}, γ::Float64)
-    MDP(γ, 1:size(R,1), 1:size(R,2), T, R)
+function MDP(T::Array{Float64,3}, R::Array{Float64,2}, γ::Float64)
+    MDP(γ, 1:size(R, 1), 1:size(R, 2), T, R)
 end

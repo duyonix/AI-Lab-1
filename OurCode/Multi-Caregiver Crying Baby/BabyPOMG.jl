@@ -10,7 +10,7 @@ ordered_states(pomg::BabyPOMG) = [SATED, HUNGRY]
 ordered_actions(pomg::BabyPOMG, i::Int) = [FEED, IGNORE, SING]
 ordered_joint_actions(pomg::BabyPOMG) = vec(collect(Iterators.product([ordered_actions(pomg, i) for i in 1:n_agents(pomg)]...)))
 
-n_actions(pomg::BabyPOMG, i::Int) = length(ordered_actions(pomg, i)) 
+n_actions(pomg::BabyPOMG, i::Int) = length(ordered_actions(pomg, i))
 n_joint_actions(pomg::BabyPOMG) = length(ordered_joint_actions(pomg))
 
 ordered_observations(pomg::BabyPOMG, i::Int) = [CRYING, QUIET]
@@ -36,7 +36,7 @@ function transition(pomg::BabyPOMG, s, a, s′) # a: joint actions [a1, a2]
             else
                 return 0.0
             end
-        # Otherwise, it becomes hungry with a fixed probability.
+            # Otherwise, it becomes hungry with a fixed probability.
         else
             probBecomeHungry = pomg.babyPOMDP.p_become_hungry
             if s′ == SATED
@@ -60,7 +60,7 @@ function joint_observation(pomg::BabyPOMG, a, s′, o)
             else
                 return 0.0
             end
-        # Otherwise the baby is sated, and the baby is silent.
+            # Otherwise the baby is sated, and the baby is silent.
         else
             if o[1] == QUIET && o[2] == QUIET
                 return 1.0
@@ -68,7 +68,7 @@ function joint_observation(pomg::BabyPOMG, a, s′, o)
                 return 0.0
             end
         end
-    # Otherwise, the caregivers fed and/or ignored the baby.
+        # Otherwise, the caregivers fed and/or ignored the baby.
     else
         # If the baby is hungry, then there's a probability it cries.
         if s′ == HUNGRY
@@ -79,7 +79,7 @@ function joint_observation(pomg::BabyPOMG, a, s′, o)
             else
                 return 0.0
             end
-        # Similarly when it is sated.
+            # Similarly when it is sated.
         else
             if o[1] == CRYING && o[2] == CRYING
                 return pomg.babyPOMDP.p_cry_when_not_hungry

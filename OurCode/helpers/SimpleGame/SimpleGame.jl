@@ -17,7 +17,7 @@ struct SimpleGamePolicy
         vs = collect(values(p))
         vs ./= sum(vs)
         # return SimpleGamePolicy from dictionary, calculate as action-probability
-        return new(Dict(k => v for (k,v) in zip(keys(p), vs)))
+        return new(Dict(k => v for (k, v) in zip(keys(p), vs)))
     end
     # return SimpleGamePolicy with probability of ai is 1
     SimpleGamePolicy(ai) = new(Dict(ai => 1.0))
@@ -29,7 +29,7 @@ function (πi::SimpleGamePolicy)()
     D = SetCategorical(collect(keys(πi.p)), collect(values(πi.p)))
     return rand(D)  # return random action
 end
-    
+
 joint(X) = vec(collect(Iterators.product(X...)))  # create joint action space from X
 joint(π, πi, i) = [i == j ? πi : πj for (j, πj) in enumerate(π)]  # replace π[i] with πi
 
@@ -40,5 +40,5 @@ function utility(𝒫::SimpleGame, π, i)
     # probability action a occur
     p(a) = prod(πj(aj) for (πj, aj) in zip(π, a))
     # the utility of agent i with joint policy π
-    return sum(R(a)[i]*p(a) for a in joint(𝒜))  
+    return sum(R(a)[i] * p(a) for a in joint(𝒜))
 end

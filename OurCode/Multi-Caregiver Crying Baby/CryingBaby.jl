@@ -16,7 +16,7 @@ end
 SATED = 1
 HUNGRY = 2
 FEED = 1
-IGNORE = 2 
+IGNORE = 2
 SING = 3
 CRYING = true
 QUIET = false
@@ -39,9 +39,9 @@ discount(pomdp::CryingBaby) = pomdp.γ
 
 ordered_states(::CryingBaby) = [SATED, HUNGRY]
 ordered_actions(::CryingBaby) = [FEED, IGNORE, SING]
-ordered_observations(::CryingBaby) = [CRYING,QUIET]
+ordered_observations(::CryingBaby) = [CRYING, QUIET]
 
-two_state_categorical(p1::Float64) = Categorical([p1,1.0 - p1])
+two_state_categorical(p1::Float64) = Categorical([p1, 1.0 - p1])
 
 function transition(pomdp::CryingBaby, s::Int, a::Int)
     if a == FEED
@@ -51,7 +51,7 @@ function transition(pomdp::CryingBaby, s::Int, a::Int)
             return two_state_categorical(0.0) # [0, 1]
         else
             # Did not feed when not hungry
-            return two_state_categorical(1.0-pomdp.p_become_hungry) # [1-p_become_hungry, p_become_hungry]
+            return two_state_categorical(1.0 - pomdp.p_become_hungry) # [1-p_become_hungry, p_become_hungry]
         end
     end
 end
@@ -85,11 +85,11 @@ function reward(pomdp::CryingBaby, s::Int, a::Int)
     return r
 end
 
-reward(pomdp::CryingBaby, b::Vector{Float64}, a::Int) = sum(reward(pomdp,s,a)*b[s] for s in ordered_states(pomdp))
+reward(pomdp::CryingBaby, b::Vector{Float64}, a::Int) = sum(reward(pomdp, s, a) * b[s] for s in ordered_states(pomdp))
 # reward=(p_hungry*reward_hungry+p_sated*reward_sated)
 
-function DiscretePOMDP(pomdp::CryingBaby; γ::Float64=pomdp.γ)
-    nS = n_states(pomdp) 
+function DiscretePOMDP(pomdp::CryingBaby; γ::Float64 = pomdp.γ)
+    nS = n_states(pomdp)
     nA = n_actions(pomdp)
     nO = n_observations(pomdp)
 
@@ -108,8 +108,8 @@ function DiscretePOMDP(pomdp::CryingBaby; γ::Float64=pomdp.γ)
     o_q = 2 #quiet
 
     T[s_s, a_f, :] = [1.0, 0.0] # T(sated | feed, (hungry or sated))
-    T[s_s, a_i, :] = [1.0-pomdp.p_become_hungry, pomdp.p_become_hungry]
-    T[s_s, a_s, :] = [1.0-pomdp.p_become_hungry, pomdp.p_become_hungry]
+    T[s_s, a_i, :] = [1.0 - pomdp.p_become_hungry, pomdp.p_become_hungry]
+    T[s_s, a_s, :] = [1.0 - pomdp.p_become_hungry, pomdp.p_become_hungry]
     T[s_h, a_f, :] = [1.0, 0.0]
     T[s_h, a_i, :] = [0.0, 1.0]
     T[s_h, a_s, :] = [0.0, 1.0]
@@ -131,7 +131,7 @@ function DiscretePOMDP(pomdp::CryingBaby; γ::Float64=pomdp.γ)
     return DiscretePOMDP(T, R, O, γ)
 end
 
-function POMDP(pomdp::CryingBaby; γ::Float64=pomdp.γ)
+function POMDP(pomdp::CryingBaby; γ::Float64 = pomdp.γ)
     disc_pomdp = DiscretePOMDP(pomdp)
     return POMDP(disc_pomdp)
 end

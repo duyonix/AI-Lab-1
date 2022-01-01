@@ -4,13 +4,13 @@ using CategoricalArrays
 struct SetCategorical{S}
     elements::Vector{S}
     distr::Categorical
-    function SetCategorical(elements::AbstractVector{S}) where S
+    function SetCategorical(elements::AbstractVector{S}) where {S}
         weights = ones(length(elements))
 
         # return SetCategorical with the probabilities of all elements are the same
         return new{S}(elements, Categorical(normalize(weights, 1)))
     end
-    function SetCategorical(elements::AbstractVector{S}, weights::AbstractVector{Float64}) where S
+    function SetCategorical(elements::AbstractVector{S}, weights::AbstractVector{Float64}) where {S}
         # calculate norm 1
         ℓ₁ = norm(weights, 1)
 

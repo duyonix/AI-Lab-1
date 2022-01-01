@@ -310,9 +310,9 @@ end
 function simulate(𝒫::MG, π, k_max)
 
     v = VisualizePPHW(k_max)
-    
+
     s = randInitialState(𝒫.𝒮)
-    
+
     push!(v.states, s)
     for k = 1:k_max
 
@@ -377,7 +377,7 @@ v, policy = simulate(mg, π, k_max)
 
 
 # @@@ use to visualize step by step (limit k_max <= 10)
-drawStepbyStepPredatorPreyHW(v.states,v.rewards,v.captured,k_max)
+drawStepbyStepPredatorPreyHW(v.states, v.rewards, v.captured, k_max)
 
 
 # @@@ used for general visualization
