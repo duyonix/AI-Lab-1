@@ -12,7 +12,6 @@ end
 function iterative_policy_evaluation(𝒫::MDP, myPolicy, k_max) 
     𝒮, T, R, γ = 𝒫.𝒮, 𝒫.T, 𝒫.R, 𝒫.γ 
     U = [0.0 for s in 𝒮]
-    # actions=[0.0 for s in 𝒮]
     for k in 1:k_max
         U = [lookahead(𝒫, U, s, myPolicy(s)) for s in 𝒮]
     end
@@ -35,18 +34,15 @@ end
 #Policy iteration => compute an optimal policy 
 #It involves iterating between policy evaluation and policy improvement 
 function solve(𝒫::MDP,myPolicy,k_max) 
-    # myPolicy, 𝒮 = M.myPolicy, 𝒫.𝒮
     𝒮=𝒫.𝒮
     for k = 1:k_max
         U=iterative_policy_evaluation(𝒫,myPolicy,k_max) #policy evaluation
         myPolicy′ = ValueFunctionPolicy(𝒫, U) #policy improvement
-        # print("U: ")
-        # print(U)
         if all(myPolicy(s) == myPolicy′(s) for s in 𝒮) #converge
-            print(k)
             break
         end
         myPolicy = myPolicy′
+        
     end
     return myPolicy
 end

@@ -1,9 +1,10 @@
 include("./mdp.jl")
+
+#Struct Discrete Markov Decision Process
 struct DiscreteMDP
-    # TODO: Use sparse matrices?
-    T::Array{Float64, 3} # T(s,a,s′)
-    R::Array{Float64, 2} # R(s,a) = ∑_s' R(s,a,s')*T(s,a,s′)
-    γ::Float64
+    T::Array{Float64, 3} # transition function
+    R::Array{Float64, 2}  #reward function
+    γ::Float64 # discount factor
 end
 
 
