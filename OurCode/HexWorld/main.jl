@@ -13,7 +13,7 @@ k_max_iteration_policy_evaluation = 100
 k_max_iteration_policy_value = 100
 
 #policy evaluation U each state, whole length is the same as states
-U_length = length(m.hexes) + 1
+U_length = length(initHexWorld.hexes) + 1
 U = [0.0 for i in 1:25]
 
 #Policy Value function area
