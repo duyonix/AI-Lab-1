@@ -1,9 +1,9 @@
 using Distributions
-include("policy.jl")
-include("hexworld.jl")
-include("discrete_mdp.jl")
-include("mdp.jl")
-include("visualize.jl")
+include("Policy.jl")
+include("HexWorld.jl")
+include("DiscreteMDP.jl")
+include("MDP.jl")
+include("Visualize.jl")
 
 initHexWorld=HexWorld() #init data for HexWorld
 mdp_hw=MDP(initHexWorld) #Construct MDP

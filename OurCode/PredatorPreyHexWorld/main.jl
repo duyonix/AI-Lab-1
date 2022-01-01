@@ -1,19 +1,10 @@
-using Pkg
-
-
-
-
-include("discrete_mdp.jl")
-include("hexworld.jl")
-include("simplegame.jl")
-include("helper.jl")
-include("mg.jl")
-include("grid.jl")
+include("../HexWorld/DiscreteMDP.jl")
+include("../HexWorld/HexWorld.jl")
+include("../helpers/SimpleGame/SimpleGame.jl")
+include("Visualize.jl")
 
 using Random
 using JuMP
-using Distributions
-using CategoricalArrays
 using LinearAlgebra
 using GridInterpolations
 using DataFrames
@@ -226,8 +217,6 @@ function (πi::MGFictitiousPlay)(s)
     # MGPolicy(Dict{s => SimpleGamePolicy}
     πi′(i) = MGPolicy(s => πi′(i, s) for s in 𝒮)
 
-    display(i)
-
     π = [πi′(i) for i in ℐ]
 
     # display(π[1].p[(1,2)](4))
@@ -378,36 +367,19 @@ end
 p = PredatorPreyHexWorld()
 mg = MG(p)
 π = [MGFictitiousPlay(mg, i) for i in 1:2]
-k_max = 5
+k_max = 10
 
 v, policy = simulate(mg, π, k_max)
 
 
-# choose 1 for 3 visualizations (uncomment from the comments starting with @@@)
+# choose 1 for 2 visualizations (uncomment from the comments starting with @@@)
+
+
 
 # @@@ use to visualize step by step (limit k_max <= 10)
-# drawPredatorPreyHW(v.states,v.rewards,v.captured,k_max)
+drawStepbyStepPredatorPreyHW(v.states,v.rewards,v.captured,k_max)
+
 
 # @@@ used for general visualization
-# using StatsPlots
-# model1 = @df v.model[1] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east], legend = :outertopleft, xlabel = "iteration", title = "opponent model - predator")
-# if (isempty(v.captured) == false)
-#     plot!(v.captured, seriestype = "vline", color = "black", label = "is captured")
-# end
+# visualizeGeneralPredatorPreyHW(v)
 
-
-# model2 = @df v.model[2] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east], legend = :outertopleft, title = "opponent model - prey")
-# if (isempty(v.captured) == false)
-#     plot!(v.captured, seriestype = "vline", color = "black", label = "is captured")
-# end
-
-# policy1 = @df v.policy[1] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east], legend = false, title = "policy - predator")
-
-# policy2 = @df v.policy[2] plot(0:k_max, [:east :north_east :north_west :west :south_west :south_east], legend = false, xlabel = "iteration", title = "policy - prey")
-
-# plot(model2, policy1, model1, policy2, size = (1000, 700), grid = :off, layout = grid(2, 2, widths = [0.6, 0.4, 0.6, 0.4]))
-
-
-# @@@ use to visualize the number of times prey is captured in each state
-# stateCaptured = [v.states[i][1] for i in v.captured]
-# plotCount = histogram(stateCaptured, bins = 12, label = "be captured in state s", legend = :outertopright)

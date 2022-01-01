@@ -1,4 +1,4 @@
-include("./discrete_mdp.jl")
+include("DiscreteMDP.jl")
 
 # 6 neighborhood of i,j cell in Hex World map
 # Example: 1,1 => Neighbor cells are: 2,1 1,2 0,2 0,1 1,0 2,0
@@ -121,4 +121,17 @@ end
 #HexWorldMDP to MDP
 function MDP(mdp::HexWorldMDP)
     return MDP(mdp.mdp.T,mdp.mdp.R,mdp.mdp.γ)
+end
+
+
+n_states(mdp::HexWorldMDP) = n_states(mdp.mdp)
+n_actions(mdp::HexWorldMDP) = n_actions(mdp.mdp)
+discount(mdp::HexWorldMDP) = discount(mdp.mdp)
+ordered_states(mdp::HexWorldMDP) = ordered_states(mdp.mdp)
+ordered_actions(mdp::HexWorldMDP) = ordered_actions(mdp.mdp)
+state_index(mdp::HexWorldMDP, s::Int) = s
+
+
+function DiscreteMDP(mdp::HexWorldMDP)
+    return mdp.mdp
 end

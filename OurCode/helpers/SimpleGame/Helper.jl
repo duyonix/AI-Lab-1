@@ -1,3 +1,5 @@
+using Distributions
+using CategoricalArrays
 
 struct SetCategorical{S}
     elements::Vector{S}
@@ -27,5 +29,6 @@ end
 Distributions.rand(D::SetCategorical) = D.elements[rand(D.distr)]
 Distributions.rand(D::SetCategorical, n::Int) = D.elements[rand(D.distr, n)]
 function Distributions.pdf(D::SetCategorical, x)
+    # sum = distr.p of x in D.elements, if not x => 0
     sum(e == x ? w : 0.0 for (e, w) in zip(D.elements, D.distr.p))
 end

@@ -1,4 +1,4 @@
-include("./hexworld.jl")
+include("./HexWorld.jl")
 
 # Init  policy evaluation : ulity 
 # Symbol Upi(s) for state s and action pi(s)/a
