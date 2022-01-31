@@ -181,7 +181,8 @@ rewards = Dict{Float64,Float64}(
     23 => -10.0,
     30 => 10.0,)
 
-
+neReward=[23]
+poReward=[11,30]
 #This result from iteration in solve function
 actionsEachCell1 = [6, 5, 4, 1, 4, 4, 4, 6, 5, 5, 1, 4, 3, 0, 6, 0, 0, 1, 6, 0, 2, 3, 1, 3, 0, 1, 4, 2, 0, 1]
 actionsEachCell2 = [6, 5, 5, 4, 1, 5, 1, 6, 6, 5, 1, 4, 3, 0, 2, 0, 0, 1, 6, 0, 2, 3, 1, 3, 0, 1, 1, 2, 0, 1]
